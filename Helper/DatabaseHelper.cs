@@ -5,7 +5,7 @@ namespace Lms.Helper;
 internal class DatabaseHelper
 {
     const string host = "localhost";
-    const string db = "lms";
+    const string db = "LMS";
     const string username = "postgres";
     const string password = "postgres";
     const string connString = $"Host={host}; Database={db}; Username={username}; Password={password}";

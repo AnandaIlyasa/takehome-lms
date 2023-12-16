@@ -1,11 +1,18 @@
 ﻿namespace Lms.View;
 
+using Lms.IService;
+using Lms.Model;
 using Lms.Utils;
 
 internal class StudentView
 {
-    public void MainMenu()
+    public IClassService ClassService { private get; init; }
+    User _studentUser;
+
+    public void MainMenu(User user)
     {
+        _studentUser = user;
+
         while (true)
         {
             Console.WriteLine("\n--- Student Page ---");
@@ -33,19 +40,25 @@ internal class StudentView
     {
         while (true)
         {
-            Console.WriteLine("\n--- My Class List ---");
-            Console.WriteLine("1. Java Class");
-            Console.WriteLine("2. C# Class");
-            Console.WriteLine("3. Back");
-            var selectedOpt = Utils.GetNumberInputUtil(1, 3, "Select Class");
+            var classList = ClassService.GetEnrolledClassList(_studentUser.Id);
 
-            if (selectedOpt == 1)
+            Console.WriteLine("\n--- My Class List ---");
+            var number = 1;
+            foreach (var studentClass in classList)
             {
-                ShowClassLearningList();
+                Console.WriteLine($"{number}. {studentClass.ClassTitle} - {studentClass.Teacher.FullName}");
+                number++;
+            }
+            Console.WriteLine(number + ". Back");
+            var selectedOpt = Utils.GetNumberInputUtil(1, number, "Select Class");
+
+            if (selectedOpt == number)
+            {
+                break;
             }
             else
             {
-                break;
+                ShowClassLearningList(classList[selectedOpt - 1].LearningList);
             }
         }
     }
@@ -71,44 +84,52 @@ internal class StudentView
         }
     }
 
-    void ShowClassLearningList()
+    void ShowClassLearningList(List<Learning> learningList)
     {
         while (true)
         {
             Console.WriteLine("\nJava Class Learning List");
-            Console.WriteLine("1. Learning-1 (2023-12-01)");
-            Console.WriteLine("2. Learning-2 (2023-12-02)");
-            Console.WriteLine("3. Back");
-            var selectedOpt = Utils.GetNumberInputUtil(1, 3, "Select Learning");
-
-            if (selectedOpt == 1)
+            var number = 1;
+            foreach (var learning in learningList)
             {
-                LearningMenu();
+                Console.WriteLine($"{number}. {learning.LearningName} ({learning.LearningDate})");
+                number++;
+            }
+            Console.WriteLine(number + ". Back");
+            var selectedOpt = Utils.GetNumberInputUtil(1, number, "Select Learning");
+
+            if (selectedOpt == number)
+            {
+                break;
             }
             else
             {
-                break;
+                LearningMenu(learningList[selectedOpt - 1].SessionList);
             }
         }
     }
 
-    void LearningMenu()
+    void LearningMenu(List<Session> sessionList)
     {
         while (true)
         {
             Console.WriteLine("\nLearning-1 Session List");
-            Console.WriteLine("1. Session-1 (11:00 - 11:00)");
-            Console.WriteLine("2. Session-2 (12:00 - 12:00)");
-            Console.WriteLine("3. Back");
-            var selectedOpt = Utils.GetNumberInputUtil(1, 3, "Select Session To Attend");
-
-            if (selectedOpt == 1)
+            var number = 1;
+            foreach (var session in sessionList)
             {
-                SessionMenu();
+                Console.WriteLine($"{number}. {session.SessionName} ({session.StartTime} - {session.EndTime})");
+                number++;
+            }
+            Console.WriteLine(number + ". Back");
+            var selectedOpt = Utils.GetNumberInputUtil(1, number, "Select Session To Attend");
+
+            if (selectedOpt == number)
+            {
+                break;
             }
             else
             {
-                break;
+                SessionMenu();
             }
         }
     }

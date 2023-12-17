@@ -1,8 +1,10 @@
 ﻿namespace Lms.View;
 
+using Lms.Constant;
 using Lms.IService;
 using Lms.Model;
 using Lms.Utils;
+using System.Threading.Tasks;
 
 internal class StudentView
 {
@@ -180,19 +182,19 @@ internal class StudentView
                 Console.WriteLine(number + ". Back");
                 var selectedOpt = Utils.GetNumberInputUtil(1, number);
 
-                if (selectedOpt == number)
+                if (selectedOpt <= sessionDetail.MaterialList.Count)
                 {
-                    //MaterialMenu(sessionDetail.MaterialList[selectedOpt - 1]);
+                    MaterialMenu(sessionDetail.MaterialList[selectedOpt - 1]);
                     break;
                 }
-                //else if (selectedOpt == 3 || selectedOpt == 4)
-                //{
-                //    ShowTaskDetail();
-                //}
-                //else
-                //{
-                //    break;
-                //}
+                else if (selectedOpt > sessionDetail.MaterialList.Count && selectedOpt < number)
+                {
+                    ShowTaskDetail(sessionDetail.TaskList[selectedOpt - sessionDetail.MaterialList.Count - 1]);
+                }
+                else
+                {
+                    break;
+                }
             }
         }
 
@@ -204,22 +206,134 @@ internal class StudentView
         Console.WriteLine("Description: " + material.MaterialDescription);
     }
 
-    void ShowTaskDetail()
+    void ShowTaskDetail(LMSTask task)
     {
+        var submission = new Submission()
+        {
+            Student = _studentUser,
+            Task = task,
+            SubmissionDetailList = new List<SubmissionDetail>(),
+            SubmissionDetailFileList = new List<SubmissionDetailFile>(),
+        };
         while (true)
         {
-            Console.WriteLine("\nTask-1 Detail");
-            Console.WriteLine("Jelaskan 5 prinsip SOLID");
-            Console.WriteLine("1. Attach Submission");
-            Console.WriteLine("2. Back");
-            var selectedOpt = Utils.GetNumberInputUtil(1, 2);
+            Console.WriteLine("\nTask Name: " + task.TaskName);
+            Console.WriteLine("Description: " + task.TaskDescription);
+            Console.WriteLine("Duration: " + task.Duration + " minutes\n");
 
-            if (selectedOpt == 1)
+            var number = 1;
+            var groupedQuestionList = task.TaskQuestionList
+                                        .OrderByDescending(q => q.QuestionType)
+                                        .ToList();
+            foreach (var taskQuestion in groupedQuestionList)
             {
-                var fileName = Utils.GetStringInputUtil("File Name");
-                var fileExtension = Utils.GetStringInputUtil("File Extension");
+                var existingAnswer = submission.SubmissionDetailList.Find(q => q.Question.Id == taskQuestion.Id);
+                string? answer = null;
+                if (existingAnswer?.EssayAnswerContent is string) answer = existingAnswer.EssayAnswerContent;
+                else if (existingAnswer?.ChoiceOption != null) answer = $"({existingAnswer?.ChoiceOption?.OptionChar}) {existingAnswer?.ChoiceOption?.OptionText}";
 
-                Console.WriteLine("\nYou successfully submit Task-1 task");
+                if (answer == null)
+                {
+                    Console.WriteLine($"{number}. {taskQuestion.QuestionContent}");
+                }
+                else
+                {
+                    Console.WriteLine($"{number}. {taskQuestion.QuestionContent} - Your answer: {answer}");
+                }
+
+                if (taskQuestion.QuestionType == QuestionType.MultipleChoice)
+                {
+                    foreach (var option in taskQuestion.OptionList)
+                    {
+                        Console.WriteLine($"   {option.OptionChar}) {option.OptionText}");
+                    }
+                }
+                number++;
+            }
+
+            foreach (var taskFile in task.TaskFileList)
+            {
+                Console.WriteLine($"{number}. {taskFile.FileName} - ({taskFile.File.FileContent}.{taskFile.File.FileExtension})");
+                number++;
+            }
+
+            Console.WriteLine(number + ". Back");
+            var selectedOpt = Utils.GetNumberInputUtil(1, number, "Select question number to answer");
+
+            if (selectedOpt <= groupedQuestionList.Count)
+            {
+                var selectedQuestion = groupedQuestionList[selectedOpt - 1];
+                var existingAnswer = submission.SubmissionDetailList.Find(q => q.Question.Id == selectedQuestion.Id);
+                if (selectedQuestion.QuestionType == QuestionType.MultipleChoice)
+                {
+                    var optionNumber = 1;
+                    foreach (var option in selectedQuestion.OptionList)
+                    {
+                        Console.WriteLine($"{optionNumber}. {option.OptionChar}) {option.OptionText}");
+                        optionNumber++;
+                    }
+                    var selectedChoice = Utils.GetNumberInputUtil(1, optionNumber - 1, "Select your answer");
+
+                    if (existingAnswer == null)
+                    {
+                        var answer = new SubmissionDetail()
+                        {
+                            Question = selectedQuestion,
+                            ChoiceOption = selectedQuestion.OptionList[selectedChoice - 1],
+                        };
+                        submission.SubmissionDetailList.Add(answer);
+                    }
+                    else
+                    {
+                        existingAnswer.ChoiceOption = selectedQuestion.OptionList[selectedChoice - 1];
+                    }
+                }
+                else
+                {
+                    var essayAnswer = Utils.GetStringInputUtil("Your answer");
+                    if (existingAnswer == null)
+                    {
+                        var answer = new SubmissionDetail()
+                        {
+                            Question = selectedQuestion,
+                            EssayAnswerContent = essayAnswer,
+                        };
+                        submission.SubmissionDetailList.Add(answer);
+                    }
+                    else
+                    {
+                        existingAnswer.EssayAnswerContent = essayAnswer;
+                    }
+                }
+            }
+            else if (selectedOpt > groupedQuestionList.Count && selectedOpt < number)
+            {
+                var selectedTaskFile = task.TaskFileList[selectedOpt - groupedQuestionList.Count - 1];
+                var existingAnswer = submission.SubmissionDetailFileList.Find(tf => tf.TaskFile.Id == selectedTaskFile.Id);
+
+                var filename = Utils.GetStringInputUtil("Filename");
+                var extension = Utils.GetStringInputUtil("Extension");
+                if (existingAnswer == null)
+                {
+                    var answer = new SubmissionDetailFile()
+                    {
+                        TaskFile = selectedTaskFile,
+                        File = new LMSFile()
+                        {
+                            FileContent = filename,
+                            FileExtension = extension,
+                        },
+                    };
+                    submission.SubmissionDetailFileList.Add(answer);
+                }
+                else
+                {
+                    existingAnswer.File = new LMSFile()
+                    {
+                        FileContent = filename,
+                        FileExtension = extension,
+                    };
+                }
             }
             else
             {

@@ -2,7 +2,8 @@
 
 internal class SubmissionDetailFile : BaseModel
 {
-    public SubmissionDetail SubmissionDetail { get; init; }
+    public Submission Submission { get; init; }
     public User Student { get; init; }
-    public LMSFile File { get; init; }
+    public LMSFile File { get; set; }
+    public TaskFile TaskFile { get; set; } // not mapped
 }

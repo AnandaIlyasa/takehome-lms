@@ -110,29 +110,30 @@ WHERE
 
 -- get task list by session id
 SELECT
-	t.id,
-	t.task_name,
-	t.task_description,
-	t.duration,
-	tf.file_name,
-	tff.file_content,
-	tff.file_extension,
-	q.question_type,
-	q.question_content,
-	mco.option_char,
-	mco.option_text,
-	mco.is_correct
+    t.id,
+    t.task_name,
+    t.task_description,
+    t.duration,
+    tf.file_name,
+    tff.file_content,
+    tff.file_extension,
+    q.id AS question_id,
+    q.question_type,
+    q.question_content,
+    mco.option_char,
+    mco.option_text,
+    mco.is_correct
 FROM
-	t_m_task t
+    t_m_task t
 LEFT JOIN
-	t_r_task_detail td ON t.id = td.task_id 
+    t_r_task_detail td ON t.id = td.task_id 
 LEFT JOIN
-	t_r_task_file tf ON td.task_file_id = tf.id
+    t_r_task_file tf ON td.task_file_id = tf.id
 LEFT JOIN
-	t_m_file tff ON tf.file_id = tff.id
+    t_m_file tff ON tf.file_id = tff.id
 LEFT JOIN
-	t_m_task_question q ON td.task_question_id = q.id
+    t_m_task_question q ON td.task_question_id = q.id
 LEFT JOIN
-	t_m_task_multiple_choice_option mco ON q.id = mco.question_id
+    t_m_task_multiple_choice_option mco ON q.id = mco.question_id
 WHERE
-	t.session_id = 2;
+    t.session_id = 2;

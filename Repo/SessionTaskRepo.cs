@@ -18,6 +18,7 @@ internal class SessionTaskRepo : ISessionTaskRepo
                 "t.task_name, " +
                 "t.task_description, " +
                 "t.duration, " +
+                "tf.id AS task_file_id, " +
                 "tf.file_name, " +
                 "tff.file_content, " +
                 "tff.file_extension, " +
@@ -40,7 +41,7 @@ internal class SessionTaskRepo : ISessionTaskRepo
             "LEFT JOIN " +
                 "t_m_task_multiple_choice_option mco ON q.id = mco.question_id " +
             "WHERE " +
-                "t.session_id = 2";
+                "t.session_id = @session_id";
 
         var conn = DBHelper.GetConnection();
         conn.Open();
@@ -53,10 +54,10 @@ internal class SessionTaskRepo : ISessionTaskRepo
         while (reader.Read())
         {
             var tId = (int)reader["id"];
-            var tFoundIndex = taskList.FindIndex(m => m.Id == tId);
-            if (tFoundIndex == -1)
+            var task = taskList.Find(t => t.Id == tId);
+            if (task == null)
             {
-                var task = new LMSTask()
+                task = new LMSTask()
                 {
                     Id = tId,
                     TaskName = (string)reader["task_name"],
@@ -78,49 +79,29 @@ internal class SessionTaskRepo : ISessionTaskRepo
                 };
                 taskFile = new TaskFile()
                 {
+                    Id = (int)reader["task_file_id"],
                     FileName = reader["file_name"] is string ? (string)reader["file_name"] : null,
                     File = file,
                 };
+                task.TaskFileList.Add(taskFile);
             }
             else
             {
-                TaskQuestion taskQuestion;
-                var questionType = (string)reader["question_type"];
-
-                var taskId = -1;
-                var questionId = -1;
                 var qId = (int)reader["question_id"];
-                foreach (var task in taskList)
-                {
-                    foreach (var question in task.TaskQuestionList)
-                    {
-                        if (question.Id == qId)
-                        {
-                            taskId = task.Id;
-                            questionId = question.Id;
-                            break;
-                        }
-                    }
-                }
-
-                if (taskId == -1 && questionId == -1)
+                var taskQuestion = task.TaskQuestionList.Find(q => q.Id == qId);
+                if (taskQuestion == null)
                 {
                     taskQuestion = new TaskQuestion()
                     {
-                        Id = (int)reader["id"],
-                        QuestionType = questionType,
+                        Id = qId,
+                        QuestionType = (string)reader["question_type"],
                         QuestionContent = (string)reader["question_content"],
                         OptionList = new List<TaskMultipleChoiceOption>(),
                     };
-                }
-                else
-                {
-                    var foundTask = taskList[taskId];
-                    var foundQuestion = foundTask.TaskQuestionList[questionId];
-                    taskQuestion = foundQuestion;
+                    task.TaskQuestionList.Add(taskQuestion);
                 }
 
-                if (questionType == QuestionType.MultipleChoice)
+                if (taskQuestion.QuestionType == QuestionType.MultipleChoice)
                 {
                     var choiceOption = new TaskMultipleChoiceOption()
                     {
@@ -130,21 +111,6 @@ internal class SessionTaskRepo : ISessionTaskRepo
                     };
                     taskQuestion.OptionList.Add(choiceOption);
                 }
-
-                if (taskId == -1)
-                {
-                    taskList[taskList.Count - 1].TaskQuestionList.Add(taskQuestion);
-                }
-                else
-                {
-                    taskList[taskId].TaskQuestionList.Add(taskQuestion);
-                }
-            }
-
-            if (taskFile != null)
-            {
-                if (tFoundIndex == -1) taskList[taskList.Count - 1].TaskFileList?.Add(taskFile);
-                else taskList[tFoundIndex].TaskFileList?.Add(taskFile);
             }
         }
 

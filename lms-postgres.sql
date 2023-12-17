@@ -214,7 +214,6 @@ CREATE TABLE t_m_task (
 CREATE TABLE t_r_task_file (
 	id SERIAL,
     file_name VARCHAR(30),
-	task_id INT NOT NULL,
     file_id INT NOT NULL,
 	created_by INT NOT NULL,
 	created_at TIMESTAMP NOT NULL,
@@ -223,23 +222,20 @@ CREATE TABLE t_r_task_file (
 	ver INT NOT NULL,
 	is_active BOOLEAN NOT NULL,
     CONSTRAINT task_file_pk PRIMARY KEY(id),
-    CONSTRAINT task_file_fk FOREIGN KEY(file_id) REFERENCES t_m_file(id),
-    CONSTRAINT task_file_task_fk FOREIGN KEY(task_id) REFERENCES t_m_task(id)
+    CONSTRAINT task_file_fk FOREIGN KEY(file_id) REFERENCES t_m_file(id)
 );
 
 CREATE TABLE t_m_task_question (
 	id SERIAL,
     question_type VARCHAR(20) NOT NULL,
     question_content TEXT NOT NULL,
-	task_id INT NOT NULL,
 	created_by INT NOT NULL,
 	created_at TIMESTAMP NOT NULL,
 	updated_at TIMESTAMP,
 	updated_by INT,
 	ver INT NOT NULL,
 	is_active BOOLEAN NOT NULL,
-	CONSTRAINT question_pk PRIMARY KEY(id),
-    CONSTRAINT question_task_fk FOREIGN KEY(task_id) REFERENCES t_m_task(id)
+	CONSTRAINT question_pk PRIMARY KEY(id)
 );
 
 CREATE TABLE t_m_task_multiple_choice_option (
@@ -272,7 +268,7 @@ CREATE TABLE t_r_task_detail (
 	is_active BOOLEAN NOT NULL,
 	CONSTRAINT task_detail_pk PRIMARY KEY(id),
 	CONSTRAINT task_detail_task_fk FOREIGN KEY(task_id) REFERENCES t_m_task(id),
-	CONSTRAINT task_detail_file_fk FOREIGN KEY(task_file_id) REFERENCES t_m_file(id),
+	CONSTRAINT task_detail_file_fk FOREIGN KEY(task_file_id) REFERENCES t_r_task_file(id),
 	CONSTRAINT task_detail_question_fk FOREIGN KEY(task_question_id) REFERENCES t_m_task_question(id)
 );
 
@@ -413,26 +409,33 @@ INSERT INTO t_r_session_material_file (file_id, file_name, material_id, created_
 
 INSERT INTO t_m_task (task_name, task_description, duration, session_id, created_by, created_at, ver, is_active) VALUES
 	('Task-1', 'Give implementation example for SOLID Principle no 1', 10, 1, 1, NOW(), 1, true),
-	('Task-2', 'Give implementation example for SOLID Principle no 2', 20, 2, 1, NOW(), 1, true),
-	('Task-3', 'Give implementation example for SOLID Principle no 3', 30, 3, 1, NOW(), 1, true),
-	('Task-4', 'Give implementation example for SOLID Principle no 4', 40, 4, 1, NOW(), 1, true),
-	('Task-5', 'Give implementation example for SOLID Principle no 5', 50, 5, 1, NOW(), 1, true);
+	('Task-2', 'Give implementation example for SOLID Principle no 1', 10, 1, 1, NOW(), 1, true),
+	('Task-3', 'Give implementation example for SOLID Principle no 2', 20, 1, 1, NOW(), 1, true),
+	('Task-4', 'Give implementation example for SOLID Principle no 1', 10, 2, 1, NOW(), 1, true),
+	('Task-5', 'Give implementation example for SOLID Principle no 2', 20, 2, 1, NOW(), 1, true),
+	('Task-6', 'Give implementation example for SOLID Principle no 3', 30, 3, 1, NOW(), 1, true),
+	('Task-7', 'Give implementation example for SOLID Principle no 4', 40, 4, 1, NOW(), 1, true),
+	('Task-8', 'Give implementation example for SOLID Principle no 5', 50, 5, 1, NOW(), 1, true);
 
-INSERT INTO t_r_task_file (task_id, file_name, file_id, created_by, created_at, ver, is_active) VALUES
-	(1, 'Explanation for task no 1', 2, 1, NOW(), 1, true),
-	(1, 'Explanation for task no 2', 2, 1, NOW(), 1, true),
-	(2, 'Explanation for task no 3', 3, 1, NOW(), 1, true),
-	(2, 'Explanation for task no 4', 3, 1, NOW(), 1, true),
-	(3, 'Explanation for task no 5', 4, 1, NOW(), 1, true);
+INSERT INTO t_r_task_file (file_name, file_id, created_by, created_at, ver, is_active) VALUES
+	('Explanation for task no 1', 2, 1, NOW(), 1, true),
+	('Explanation for task no 2', 2, 1, NOW(), 1, true),
+	('Explanation for task no 3', 3, 1, NOW(), 1, true),
+	('Explanation for task no 4', 3, 1, NOW(), 1, true),
+	('Explanation for task no 5', 4, 1, NOW(), 1, true);
 
-INSERT INTO t_m_task_question (task_id, question_type, question_content, created_by, created_at, ver, is_active) VALUES
-	(1, 'Essay', 'Explain SOLID Principle no 1', 1, NOW(), 1, true),
-	(1, 'Essay', 'Explain SOLID Principle no 2', 1, NOW(), 1, true),
-	(2, 'Multiple Choice', 'What is SOLID Principle no 2', 1, NOW(), 1, true),
-	(2, 'Multiple Choice', 'What is SOLID Principle no 3', 1, NOW(), 1, true),
-	(3, 'Multiple Choice', 'Explain SOLID Principle no 4', 1, NOW(), 1, true);
+INSERT INTO t_m_task_question (question_type, question_content, created_by, created_at, ver, is_active) VALUES
+	('Essay', 'Explain SOLID Principle no 1', 1, NOW(), 1, true),
+	('Essay', 'Explain SOLID Principle no 2', 1, NOW(), 1, true),
+	('Multiple Choice', 'What is SOLID Principle no 2', 1, NOW(), 1, true),
+	('Multiple Choice', 'What is SOLID Principle no 3', 1, NOW(), 1, true),
+	('Multiple Choice', 'Explain SOLID Principle no 4', 1, NOW(), 1, true);
 
 INSERT INTO t_m_task_multiple_choice_option (option_char, option_text, is_correct, question_id, created_by, created_at, ver, is_active) VALUES
+	('A', 'Inheritance', true, 4, 1, NOW(), 1, true),
+	('B', 'Encapsulation', true, 4, 1, NOW(), 1, true),
+	('C', 'Abstraction', true, 5, 1, NOW(), 1, true),
+	('D', 'Polymorphism', true, 3, 1, NOW(), 1, true),
 	('A', 'Single responsibility', true, 3, 1, NOW(), 1, true),
 	('B', 'Open-closed', true, 3, 1, NOW(), 1, true),
 	('C', 'Liskov substitution', true, 4, 1, NOW(), 1, true),
@@ -442,6 +445,8 @@ INSERT INTO t_m_task_multiple_choice_option (option_char, option_text, is_correc
 INSERT INTO t_r_task_detail (task_id, task_file_id, task_question_id, created_by, created_at, ver, is_active) VALUES
 	(1, NULL, 1, 1, NOW(), 1, true),
 	(1, NULL, 4, 1, NOW(), 1, true),
+	(1, NULL, 3, 1, NOW(), 1, true),
+	(1, NULL, 2, 1, NOW(), 1, true),
 	(1, 1, NULL, 1, NOW(), 1, true),
 	(2, 2, NULL, 1, NOW(), 1, true),
 	(2, NULL, 2, 1, NOW(), 1, true),

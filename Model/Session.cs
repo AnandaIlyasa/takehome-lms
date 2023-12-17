@@ -2,9 +2,11 @@
 
 internal class Session : BaseModel
 {
-    public string SessionName { get; init; }
-    public string? SessionDescription { get; init; }
-    public TimeOnly StartTime { get; init; }
-    public TimeOnly EndTime { get; init; }
+    public string SessionName { get; set; }
+    public string? SessionDescription { get; set; }
+    public TimeOnly StartTime { get; set; }
+    public TimeOnly EndTime { get; set; }
     public Learning Learning { get; init; }
+    public List<SessionMaterial> MaterialList { get; set; } // not mapped
+    public List<LMSTask> TaskList { get; set; } // not mapped
 }

@@ -51,6 +51,7 @@ CREATE TABLE t_m_class (
     class_code VARCHAR(10) NOT NULL,
     class_title VARCHAR(50) NOT NULL,
     class_description TEXT,
+	teacher_id INT NOT NULL,
     class_image_id INT NOT NULL,
 	created_by INT NOT NULL,
 	created_at TIMESTAMP NOT NULL,
@@ -60,6 +61,7 @@ CREATE TABLE t_m_class (
 	is_active BOOLEAN NOT NULL,
     CONSTRAINT class_pk PRIMARY KEY(id),
     CONSTRAINT class_bk UNIQUE(class_code),
+	CONSTRAINT class_teacher_fk FOREIGN KEY(teacher_id) REFERENCES t_m_user(id),
 	CONSTRAINT class_image_fk FOREIGN KEY(class_image_id) REFERENCES t_m_file(id)
 );
 
@@ -179,6 +181,7 @@ CREATE TABLE t_m_session_material (
 
 CREATE TABLE t_r_session_material_file (
 	id SERIAL,
+	file_name VARCHAR(30),
     file_id INT NOT NULL,
     material_id INT NOT NULL,
 	created_by INT NOT NULL,
@@ -211,6 +214,7 @@ CREATE TABLE t_m_task (
 CREATE TABLE t_r_task_file (
 	id SERIAL,
     file_name VARCHAR(30),
+	task_id INT NOT NULL,
     file_id INT NOT NULL,
 	created_by INT NOT NULL,
 	created_at TIMESTAMP NOT NULL,
@@ -219,20 +223,23 @@ CREATE TABLE t_r_task_file (
 	ver INT NOT NULL,
 	is_active BOOLEAN NOT NULL,
     CONSTRAINT task_file_pk PRIMARY KEY(id),
-    CONSTRAINT task_file_fk FOREIGN KEY(file_id) REFERENCES t_m_file(id)
+    CONSTRAINT task_file_fk FOREIGN KEY(file_id) REFERENCES t_m_file(id),
+    CONSTRAINT task_file_task_fk FOREIGN KEY(task_id) REFERENCES t_m_task(id)
 );
 
 CREATE TABLE t_m_task_question (
 	id SERIAL,
     question_type VARCHAR(20) NOT NULL,
-    question_content TEXT,
+    question_content TEXT NOT NULL,
+	task_id INT NOT NULL,
 	created_by INT NOT NULL,
 	created_at TIMESTAMP NOT NULL,
 	updated_at TIMESTAMP,
 	updated_by INT,
 	ver INT NOT NULL,
 	is_active BOOLEAN NOT NULL,
-	CONSTRAINT question_pk PRIMARY KEY(id)
+	CONSTRAINT question_pk PRIMARY KEY(id),
+    CONSTRAINT question_task_fk FOREIGN KEY(task_id) REFERENCES t_m_task(id)
 );
 
 CREATE TABLE t_m_task_multiple_choice_option (
@@ -292,7 +299,6 @@ CREATE TABLE t_r_submission_detail (
     essay_answer_content TEXT,
 	submission_id INT NOT NULL,
     question_id INT NOT NULL,
-    student_id INT NOT NULL,
     choice_option_id INT,
 	created_by INT NOT NULL,
 	created_at TIMESTAMP NOT NULL,
@@ -301,17 +307,15 @@ CREATE TABLE t_r_submission_detail (
 	ver INT NOT NULL,
 	is_active BOOLEAN NOT NULL,
     CONSTRAINT submission_detail_pk PRIMARY KEY(id),
-    CONSTRAINT submission_detail_ck UNIQUE(question_id, student_id, choice_option_id),
+    CONSTRAINT submission_detail_ck UNIQUE(question_id, choice_option_id),
 	CONSTRAINT submission_detail_submission_id_fk FOREIGN KEY(submission_id) REFERENCES t_r_submission(id),
     CONSTRAINT submission_detail_question_fk FOREIGN KEY(question_id) REFERENCES t_m_task_question(id),
-    CONSTRAINT submission_detail_student_fk FOREIGN KEY(student_id) REFERENCES t_m_user(id),
     CONSTRAINT submission_detail_option_fk FOREIGN KEY(choice_option_id) REFERENCES t_m_task_multiple_choice_option(id)
 );
 
 CREATE TABLE t_r_submission_detail_file (
 	id SERIAL,
     submission_id INT NOT NULL,
-    student_id INT NOT NULL,
     file_id INT NOT NULL,
 	created_by INT NOT NULL,
 	created_at TIMESTAMP NOT NULL,
@@ -320,9 +324,8 @@ CREATE TABLE t_r_submission_detail_file (
 	ver INT NOT NULL,
 	is_active BOOLEAN NOT NULL,
     CONSTRAINT submission_file_pk PRIMARY KEY(id),
-	CONSTRAINT submission_file_ck UNIQUE(submission_id, student_id, file_id),
+	CONSTRAINT submission_file_ck UNIQUE(submission_id, file_id),
     CONSTRAINT submission_id_fk FOREIGN KEY(submission_id) REFERENCES t_r_submission(id),
-    CONSTRAINT submission_file_student_fk FOREIGN KEY(student_id) REFERENCES t_m_user(id),
     CONSTRAINT submission_file_fk FOREIGN KEY(file_id) REFERENCES t_m_file(id)
 );
 
@@ -343,14 +346,14 @@ INSERT INTO t_m_user (full_name, email, pass, photo_id, role_id, created_by, cre
 	('Budi Doremi', 'budi@gmail.com', 'budi', NULL, 2, 1, NOW(), 1, true),
 	('Caca Putri', 'caca@gmail.com', 'caca', NULL, 2, 1, NOW(), 1, true),
 	('Deni Putra', 'deni@gmail.com', 'deni', NULL, 2, 1, NOW(), 1, true),
-	('Eka Setiawan', 'eka@gmail.com', 'eka', NULL, 2, 1, NOW(), 1, true);
+	('Eka Setiawan', 'eka@gmail.com', 'eka', NULL, 3, 1, NOW(), 1, true);
 
-INSERT INTO t_m_class (class_code, class_title, class_description, class_image_id, created_by, created_at, ver, is_active) VALUES
-	('JAVA-1', 'Java basics 1', 'Learn java basics level 1', 1, 1, NOW(), 1, true),
-	('JAVA-2', 'Java basics 2', 'Learn java basics level 2', 2, 1, NOW(), 1, true),
-	('JAVA-3', 'Java basics 3', 'Learn java basics level 3', 3, 1, NOW(), 1, true),
-	('JAVA-4', 'Java basics 4', 'Learn java basics level 4', 4, 1, NOW(), 1, true),
-	('JAVA-5', 'Java basics 5', 'Learn java basics level 5', 4, 1, NOW(), 1, true);
+INSERT INTO t_m_class (teacher_id, class_code, class_title, class_description, class_image_id, created_by, created_at, ver, is_active) VALUES
+	(3, 'JAVA-1', 'Java basics 1', 'Learn java basics level 1', 1, 1, NOW(), 1, true),
+	(3, 'JAVA-2', 'Java basics 2', 'Learn java basics level 2', 2, 1, NOW(), 1, true),
+	(3, 'JAVA-3', 'Java basics 3', 'Learn java basics level 3', 3, 1, NOW(), 1, true),
+	(3, 'JAVA-4', 'Java basics 4', 'Learn java basics level 4', 4, 1, NOW(), 1, true),
+	(3, 'JAVA-5', 'Java basics 5', 'Learn java basics level 5', 4, 1, NOW(), 1, true);
 
 INSERT INTO t_r_student_class (class_id, student_id, created_by, created_at, ver, is_active) VALUES
 	(1, 2, 1, NOW(), 1, true),
@@ -401,12 +404,12 @@ INSERT INTO t_m_session_material (material_name, material_description, session_i
 	('material-4', 'This is module for SOLID Principle no 4', 2, 1, NOW(), 1, true),
 	('material-5', 'This is module for SOLID Principle no 5', 3, 1, NOW(), 1, true);
 
-INSERT INTO t_r_session_material_file (file_id, material_id, created_by, created_at, ver, is_active) VALUES
-	(1, 1, 1, NOW(), 1, true),
-	(2, 1, 1, NOW(), 1, true),
-	(3, 2, 1, NOW(), 1, true),
-	(4, 2, 1, NOW(), 1, true),
-	(5, 3, 1, NOW(), 1, true);
+INSERT INTO t_r_session_material_file (file_id, file_name, material_id, created_by, created_at, ver, is_active) VALUES
+	(1, 'Explanation for task no 1', 1, 1, NOW(), 1, true),
+	(2, 'Explanation for task no 2', 1, 1, NOW(), 1, true),
+	(3, 'Explanation for task no 3', 2, 1, NOW(), 1, true),
+	(4, 'Explanation for task no 4', 2, 1, NOW(), 1, true),
+	(5, 'Explanation for task no 5', 3, 1, NOW(), 1, true);
 
 INSERT INTO t_m_task (task_name, task_description, duration, session_id, created_by, created_at, ver, is_active) VALUES
 	('Task-1', 'Give implementation example for SOLID Principle no 1', 10, 1, 1, NOW(), 1, true),
@@ -415,32 +418,34 @@ INSERT INTO t_m_task (task_name, task_description, duration, session_id, created
 	('Task-4', 'Give implementation example for SOLID Principle no 4', 40, 4, 1, NOW(), 1, true),
 	('Task-5', 'Give implementation example for SOLID Principle no 5', 50, 5, 1, NOW(), 1, true);
 
-INSERT INTO t_r_task_file (file_name, file_id, created_by, created_at, ver, is_active) VALUES
-	('Explanation for task no 1', 2, 1, NOW(), 1, true),
-	('Explanation for task no 2', 2, 1, NOW(), 1, true),
-	('Explanation for task no 3', 3, 1, NOW(), 1, true),
-	('Explanation for task no 4', 3, 1, NOW(), 1, true),
-	('Explanation for task no 5', 4, 1, NOW(), 1, true);
+INSERT INTO t_r_task_file (task_id, file_name, file_id, created_by, created_at, ver, is_active) VALUES
+	(1, 'Explanation for task no 1', 2, 1, NOW(), 1, true),
+	(1, 'Explanation for task no 2', 2, 1, NOW(), 1, true),
+	(2, 'Explanation for task no 3', 3, 1, NOW(), 1, true),
+	(2, 'Explanation for task no 4', 3, 1, NOW(), 1, true),
+	(3, 'Explanation for task no 5', 4, 1, NOW(), 1, true);
 
-INSERT INTO t_m_task_question (question_type, question_content, created_by, created_at, ver, is_active) VALUES
-	('Essay', 'Explain SOLID Principle no 1', 1, NOW(), 1, true),
-	('Essay', 'Explain SOLID Principle no 2', 1, NOW(), 1, true),
-	('Multiple Choice', 'What is SOLID Principle no 2', 1, NOW(), 1, true),
-	('Multiple Choice', 'What is SOLID Principle no 3', 1, NOW(), 1, true),
-	('Multiple Choice', 'Explain SOLID Principle no 4', 1, NOW(), 1, true);
+INSERT INTO t_m_task_question (task_id, question_type, question_content, created_by, created_at, ver, is_active) VALUES
+	(1, 'Essay', 'Explain SOLID Principle no 1', 1, NOW(), 1, true),
+	(1, 'Essay', 'Explain SOLID Principle no 2', 1, NOW(), 1, true),
+	(2, 'Multiple Choice', 'What is SOLID Principle no 2', 1, NOW(), 1, true),
+	(2, 'Multiple Choice', 'What is SOLID Principle no 3', 1, NOW(), 1, true),
+	(3, 'Multiple Choice', 'Explain SOLID Principle no 4', 1, NOW(), 1, true);
 
 INSERT INTO t_m_task_multiple_choice_option (option_char, option_text, is_correct, question_id, created_by, created_at, ver, is_active) VALUES
-	('A', 'Single responsibility', true, 1, 1, NOW(), 1, true),
-	('B', 'Open-closed', true, 1, 1, NOW(), 1, true),
-	('C', 'Liskov substitution', true, 2, 1, NOW(), 1, true),
-	('D', 'Interface seggregation', true, 2, 1, NOW(), 1, true),
-	('E', 'Dependency inversion', true, 3, 1, NOW(), 1, true);
+	('A', 'Single responsibility', true, 3, 1, NOW(), 1, true),
+	('B', 'Open-closed', true, 3, 1, NOW(), 1, true),
+	('C', 'Liskov substitution', true, 4, 1, NOW(), 1, true),
+	('D', 'Interface seggregation', true, 4, 1, NOW(), 1, true),
+	('E', 'Dependency inversion', true, 5, 1, NOW(), 1, true);
 
 INSERT INTO t_r_task_detail (task_id, task_file_id, task_question_id, created_by, created_at, ver, is_active) VALUES
 	(1, NULL, 1, 1, NOW(), 1, true),
-	(1, NULL, 1, 1, NOW(), 1, true),
+	(1, NULL, 4, 1, NOW(), 1, true),
+	(1, 1, NULL, 1, NOW(), 1, true),
+	(2, 2, NULL, 1, NOW(), 1, true),
 	(2, NULL, 2, 1, NOW(), 1, true),
-	(2, NULL, 2, 1, NOW(), 1, true),
+	(2, NULL, 3, 1, NOW(), 1, true),
 	(3, NULL, 3, 1, NOW(), 1, true),
 	(3, 1, NULL, 1, NOW(), 1, true),
 	(4, 1, NULL, 1, NOW(), 1, true),
@@ -455,16 +460,16 @@ INSERT INTO t_r_task_detail (task_id, task_file_id, task_question_id, created_by
 -- 	(80, 'Nice try', 2, 2, 1, NOW(), 1, true),
 -- 	(90, 'Nice try', 1, 3, 1, NOW(), 1, true);
 
--- INSERT INTO t_r_submission_detail (essay_answer_content, submission_id, question_id, student_id, choice_option_id, created_by, created_at, ver, is_active) VALUES
--- 	('Liskov substitution', 1, 1, 1, NULL, 1, NOW(), 1, true),
--- 	('Interface seggregation', 2, 2, 2, NULL, 1, NOW(), 1, true),
--- 	('Dependency inversion', 3, 3, 3, NULL, 1, NOW(), 1, true),
--- 	(NULL, 4, 4, 4, 4, 1, NOW(), 1, true),
--- 	(NULL, 5, 5, 5, 5, 1, NOW(), 1, true);
+-- INSERT INTO t_r_submission_detail (essay_answer_content, submission_id, question_id, choice_option_id, created_by, created_at, ver, is_active) VALUES
+-- 	('Liskov substitution', 1, 1, NULL, 1, NOW(), 1, true),
+-- 	('Interface seggregation', 2, 2, NULL, 1, NOW(), 1, true),
+-- 	('Dependency inversion', 3, 3, NULL, 1, NOW(), 1, true),
+-- 	(NULL, 4, 4, 4, 1, NOW(), 1, true),
+-- 	(NULL, 5, 5, 5, 1, NOW(), 1, true);
 
--- INSERT INTO t_r_submission_detail_file (submission_id, student_id, file_id, created_by, created_at, ver, is_active) VALUES
--- 	(1, 1, 1, 1, NOW(), 1, true),
--- 	(2, 2, 2, 1, NOW(), 1, true),
--- 	(3, 3, 3, 1, NOW(), 1, true),
--- 	(4, 4, 4, 1, NOW(), 1, true),
--- 	(5, 5, 5, 1, NOW(), 1, true);
+-- INSERT INTO t_r_submission_detail_file (submission_id, file_id, created_by, created_at, ver, is_active) VALUES
+-- 	(1, 1, 1, NOW(), 1, true),
+-- 	(2, 2, 1, NOW(), 1, true),
+-- 	(3, 3, 1, NOW(), 1, true),
+-- 	(4, 4, 1, NOW(), 1, true),
+-- 	(5, 5, 1, NOW(), 1, true);

@@ -7,6 +7,7 @@ using Lms.Utils;
 internal class StudentView
 {
     public IClassService ClassService { private get; init; }
+    public ISessionService SessionService { private get; init; }
     User _studentUser;
 
     public void MainMenu(User user)
@@ -129,47 +130,78 @@ internal class StudentView
             }
             else
             {
-                SessionMenu();
+                SessionMenu(sessionList[selectedOpt - 1]);
             }
         }
     }
 
-    void SessionMenu()
+    void SessionMenu(Session session)
     {
-        Console.WriteLine("\nSession-1 Menu");
-        Console.WriteLine("1. Attend this session");
-        Utils.GetNumberInputUtil(1, 1);
-        Console.WriteLine("\nPlase wait for Teacher approval to be able to view Session-1 content");
-        Thread.Sleep(5000);
-        while (true)
+        var sessionAttendance = new SessionAttendance()
         {
-            Console.WriteLine("\nSession-1 Menu");
-            Console.WriteLine("1. Material-1");
-            Console.WriteLine("2. Material-2");
-            Console.WriteLine("3. Task-1");
-            Console.WriteLine("4. Task-2");
-            Console.WriteLine("5. Back");
-            var selectedOpt = Utils.GetNumberInputUtil(1, 5);
+            Student = _studentUser,
+            Session = session,
+            IsApproved = false,
+        };
+        var attendance = SessionService.GetSessionAttendanceStatusByStudent(sessionAttendance);
+        if (attendance == null)
+        {
+            Console.WriteLine($"\n{session.SessionName} ({session.StartTime} - {session.EndTime})");
+            Console.WriteLine("1. Attend this session");
+            Utils.GetNumberInputUtil(1, 1);
+            SessionService.AttendSession(sessionAttendance);
+            Console.WriteLine("\nAttend success!");
+            Console.WriteLine("Plase wait for Teacher approval to be able to view " + session.SessionName + " content");
+        }
+        else if (attendance.IsApproved == false)
+        {
+            Console.WriteLine($"\n{session.SessionName} ({session.StartTime} - {session.EndTime})");
+            Console.WriteLine("\nPlase wait for Teacher approval to be able to view " + session.SessionName + " content");
+        }
+        else
+        {
+            var sessionDetail = SessionService.GetSessionById(session.Id);
+            while (true)
+            {
+                Console.WriteLine($"\n{session.SessionName} ({session.StartTime} - {session.EndTime})");
+                Console.WriteLine("Description : " + sessionDetail.SessionDescription);
 
-            if (selectedOpt == 1 || selectedOpt == 2)
-            {
-                MaterialMenu();
-            }
-            else if (selectedOpt == 3 || selectedOpt == 4)
-            {
-                ShowTaskDetail();
-            }
-            else
-            {
-                break;
+                var number = 1;
+                foreach (var material in sessionDetail.MaterialList)
+                {
+                    Console.WriteLine($"{number}. {material.MaterialName}");
+                    number++;
+                }
+                foreach (var task in sessionDetail.TaskList)
+                {
+                    Console.WriteLine($"{number}. {task.TaskName}");
+                    number++;
+                }
+                Console.WriteLine(number + ". Back");
+                var selectedOpt = Utils.GetNumberInputUtil(1, number);
+
+                if (selectedOpt == number)
+                {
+                    //MaterialMenu(sessionDetail.MaterialList[selectedOpt - 1]);
+                    break;
+                }
+                //else if (selectedOpt == 3 || selectedOpt == 4)
+                //{
+                //    ShowTaskDetail();
+                //}
+                //else
+                //{
+                //    break;
+                //}
             }
         }
+
     }
 
-    void MaterialMenu()
+    void MaterialMenu(SessionMaterial material)
     {
-        Console.WriteLine("\nMaterial-1 Detail");
-        Console.WriteLine("Content: Please watch this tutorial http://youtube.com");
+        Console.WriteLine("\n" + material.MaterialName + " Detail");
+        Console.WriteLine("Description: " + material.MaterialDescription);
     }
 
     void ShowTaskDetail()

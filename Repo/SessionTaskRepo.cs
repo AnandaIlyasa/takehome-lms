@@ -25,6 +25,7 @@ internal class SessionTaskRepo : ISessionTaskRepo
                 "q.id AS question_id, " +
                 "q.question_type, " +
                 "q.question_content, " +
+                "mco.id AS option_id, " +
                 "mco.option_char, " +
                 "mco.option_text, " +
                 "mco.is_correct " +
@@ -105,6 +106,7 @@ internal class SessionTaskRepo : ISessionTaskRepo
                 {
                     var choiceOption = new TaskMultipleChoiceOption()
                     {
+                        Id = (int)reader["option_id"],
                         OptionChar = (string)reader["option_char"],
                         OptionText = (string)reader["option_text"],
                         IsCorrect = (bool)reader["is_correct"],

@@ -41,6 +41,11 @@ internal class SessionRepo : ISessionRepo
             session.SessionDescription = reader["session_description"] is string ? (string)reader["session_description"] : null;
             session.StartTime = TimeOnly.FromTimeSpan((TimeSpan)reader["start_time"]);
             session.EndTime = TimeOnly.FromTimeSpan((TimeSpan)reader["end_time"]);
+            session.Forum = new Forum()
+            {
+                Id = (int)reader["forum_id"],
+                ForumName = (string)reader["forum_name"],
+            };
         }
 
         conn.Close();

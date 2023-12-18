@@ -17,15 +17,38 @@ internal class Program
         var sessionRepo = new SessionRepo() { DBHelper = dbHelper };
         var sessionMaterialRepo = new SessionMaterialRepo() { DBHelper = dbHelper };
         var sessionTaskRepo = new SessionTaskRepo() { DBHelper = dbHelper };
+        var submissionRepo = new SubmissionRepo() { DBHelper = dbHelper };
+        var submissionDetailRepo = new SubmissionDetailRepo() { DBHelper = dbHelper };
+        var submissionDetailFileRepo = new SubmissionDetailFileRepo() { DBHelper = dbHelper };
+        var fileRepo = new LMSFileRepo() { DBHelper = dbHelper };
+        var studentClassRepo = new StudentClassRepo() { DBHelper = dbHelper };
+        var forumRepo = new ForumRepo() { DBHelper = dbHelper };
+        var forumCommentRepo = new ForumCommentRepo() { DBHelper = dbHelper };
 
         var userService = new UserService() { UserRepo = userRepo };
-        var classService = new ClassService() { ClassRepo = classRepo };
+        var classService = new ClassService()
+        {
+            ClassRepo = classRepo,
+            StudentClassRepo = studentClassRepo,
+        };
         var sessionService = new SessionService()
         {
             SessionAttendanceRepo = sessionAttendanceRepo,
             SessionRepo = sessionRepo,
             SessionMaterialRepo = sessionMaterialRepo,
             SessionTaskRepo = sessionTaskRepo,
+        };
+        var taskSubmissionService = new TaskSubmissionService()
+        {
+            SubmissionRepo = submissionRepo,
+            SubmissionDetailRepo = submissionDetailRepo,
+            SubmissionDetailFileRepo = submissionDetailFileRepo,
+            FileRepo = fileRepo,
+        };
+        var forumService = new ForumService()
+        {
+            ForumRepo = forumRepo,
+            ForumCommentRepo = forumCommentRepo,
         };
 
         var superadminView = new SuperAdminView();
@@ -34,6 +57,8 @@ internal class Program
         {
             ClassService = classService,
             SessionService = sessionService,
+            TaskSubmissionService = taskSubmissionService,
+            ForumService = forumService,
         };
         var mainView = new MainView()
         {

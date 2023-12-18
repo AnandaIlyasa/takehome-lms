@@ -303,7 +303,7 @@ CREATE TABLE t_r_submission_detail (
 	ver INT NOT NULL,
 	is_active BOOLEAN NOT NULL,
     CONSTRAINT submission_detail_pk PRIMARY KEY(id),
-    CONSTRAINT submission_detail_ck UNIQUE(question_id, choice_option_id),
+    -- CONSTRAINT submission_detail_ck UNIQUE(question_id, choice_option_id),
 	CONSTRAINT submission_detail_submission_id_fk FOREIGN KEY(submission_id) REFERENCES t_r_submission(id),
     CONSTRAINT submission_detail_question_fk FOREIGN KEY(question_id) REFERENCES t_m_task_question(id),
     CONSTRAINT submission_detail_option_fk FOREIGN KEY(choice_option_id) REFERENCES t_m_task_multiple_choice_option(id)
@@ -345,18 +345,31 @@ INSERT INTO t_m_user (full_name, email, pass, photo_id, role_id, created_by, cre
 	('Eka Setiawan', 'eka@gmail.com', 'eka', NULL, 3, 1, NOW(), 1, true);
 
 INSERT INTO t_m_class (teacher_id, class_code, class_title, class_description, class_image_id, created_by, created_at, ver, is_active) VALUES
-	(3, 'JAVA-1', 'Java basics 1', 'Learn java basics level 1', 1, 1, NOW(), 1, true),
-	(3, 'JAVA-2', 'Java basics 2', 'Learn java basics level 2', 2, 1, NOW(), 1, true),
-	(3, 'JAVA-3', 'Java basics 3', 'Learn java basics level 3', 3, 1, NOW(), 1, true),
-	(3, 'JAVA-4', 'Java basics 4', 'Learn java basics level 4', 4, 1, NOW(), 1, true),
-	(3, 'JAVA-5', 'Java basics 5', 'Learn java basics level 5', 4, 1, NOW(), 1, true);
+	(5, 'JAVA-1', 'Java basics 1', 'Learn java basics level 1', 1, 1, NOW(), 1, true),
+	(5, 'JAVA-2', 'Java basics 2', 'Learn java basics level 2', 2, 1, NOW(), 1, true),
+	(5, 'JAVA-3', 'Java basics 3', 'Learn java basics level 3', 3, 1, NOW(), 1, true),
+	(5, 'JAVA-4', 'Java basics 4', 'Learn java basics level 4', 4, 1, NOW(), 1, true),
+	(5, 'JAVA-5', 'Java basics 5', 'Learn java basics level 5', 4, 1, NOW(), 1, true);
 
-INSERT INTO t_r_student_class (class_id, student_id, created_by, created_at, ver, is_active) VALUES
-	(1, 2, 1, NOW(), 1, true),
-	(1, 3, 1, NOW(), 1, true),
-	(2, 2, 1, NOW(), 1, true),
-	(2, 4, 1, NOW(), 1, true),
-	(3, 4, 1, NOW(), 1, true);
+-- INSERT INTO t_r_student_class (class_id, student_id, created_by, created_at, ver, is_active) VALUES
+-- 	(1, 2, 1, NOW(), 1, true),
+-- 	(2, 1, 1, NOW(), 1, true),
+-- 	(3, 3, 1, NOW(), 1, true),
+-- 	(4, 4, 1, NOW(), 1, true),
+-- 	(5, 5, 1, NOW(), 1, true),
+-- 	(1, 1, 1, NOW(), 1, true);
+
+-- INSERT INTO t_r_student_class (class_id, student_id, created_by, created_at, ver, is_active) VALUES
+-- 	(1, 2, 1, NOW(), 1, true),
+-- 	(1, 3, 1, NOW(), 1, true),
+-- 	(2, 3, 1, NOW(), 1, true),
+-- 	(2, 4, 1, NOW(), 1, true),
+-- 	(3, 4, 1, NOW(), 1, true),
+-- 	(3, 2, 1, NOW(), 1, true),
+-- 	(4, 2, 1, NOW(), 1, true),
+-- 	(4, 3, 1, NOW(), 1, true),
+-- 	(5, 3, 1, NOW(), 1, true),
+-- 	(5, 4, 1, NOW(), 1, true);
 
 INSERT INTO t_m_learning (learning_name, learning_description, learning_date, class_id, created_by, created_at, ver, is_active) VALUES
 	('Learning no 1', 'Learning - Basic consept of SOLID Principle no 1', NOW(), 1, 1, NOW(), 1, true),

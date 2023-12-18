@@ -137,3 +137,44 @@ LEFT JOIN
     t_m_task_multiple_choice_option mco ON q.id = mco.question_id
 WHERE
     t.session_id = 2;
+
+-- insert submission
+INSERT INTO 
+    t_r_submission (student_id, task_id, created_by, created_at, ver, is_active) 
+VALUES 
+    (@student_id, @task_id, @created_by, GETDATE(), 0, 1) 
+SELECT @@identitity
+
+-- get unenrolled class
+"SELECT " +
+	"c.id, " +
+    "c.class_code, " +
+    "c.class_title, " +
+    "c.class_description " +
+"FROM  " +
+	"t_m_class c " +
+"WHERE " +
+	"c.id NOT IN " +
+	"( " +
+		"SELECT " +
+			"c.id " +
+		"FROM " +
+			"t_m_class c " +
+		"JOIN " +
+			"t_r_student_class sc ON c.id = sc.class_id " +
+		"WHERE " +
+			"sc.student_id = 2 " +
+	")"
+
+-- get comment list by forum id
+"SELECT " +
+	"fc.id, " +
+	"fc.comment_content, " +
+	"fc.created_at, " +
+	"u.full_name " +
+"FROM " +
+	"t_r_forum_comment fc " +
+"JOIN " +
+	"t_m_user u ON fc.user_id = u.id " +
+"WHERE " +
+	"fc.forum_id = 2"

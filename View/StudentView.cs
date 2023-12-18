@@ -4,12 +4,13 @@ using Lms.Constant;
 using Lms.IService;
 using Lms.Model;
 using Lms.Utils;
-using System.Threading.Tasks;
 
 internal class StudentView
 {
     public IClassService ClassService { private get; init; }
     public ISessionService SessionService { private get; init; }
+    public ITaskSubmissionService TaskSubmissionService { private get; init; }
+    public IForumService ForumService { private get; init; }
     User _studentUser;
 
     public void MainMenu(User user)
@@ -70,19 +71,34 @@ internal class StudentView
     {
         while (true)
         {
-            Console.WriteLine("\n--- Available Class List ---");
-            Console.WriteLine("1. Python Class");
-            Console.WriteLine("2. Golang Class");
-            Console.WriteLine("3. Back");
-            var selectedOpt = Utils.GetNumberInputUtil(1, 3, "Select Class to Enroll");
+            var unEnrolledClassList = ClassService.GetUnEnrolledClassList(_studentUser.Id);
 
-            if (selectedOpt == 1)
+            Console.WriteLine("\n--- Available Class List ---");
+
+            var number = 1;
+            foreach (var unEnrolledClass in unEnrolledClassList)
             {
-                Console.WriteLine("\nYou successfully enrolled in Python Class");
+                Console.WriteLine($"{number}. {unEnrolledClass.ClassTitle}");
+                number++;
+            }
+            Console.WriteLine(number + ". Back");
+            var selectedOpt = Utils.GetNumberInputUtil(1, number, "Select Class to Enroll");
+
+            if (selectedOpt == number)
+            {
+                break;
             }
             else
             {
-                break;
+                var selectedClass = unEnrolledClassList[selectedOpt - 1];
+                var studentClass = new StudentClass()
+                {
+                    Student = _studentUser,
+                    Class = selectedClass,
+                };
+                ClassService.EnrollClass(studentClass);
+
+                Console.WriteLine($"\nYou successfully enrolled in {selectedClass.ClassTitle} class");
             }
         }
     }
@@ -151,6 +167,7 @@ internal class StudentView
             Console.WriteLine($"\n{session.SessionName} ({session.StartTime} - {session.EndTime})");
             Console.WriteLine("1. Attend this session");
             Utils.GetNumberInputUtil(1, 1);
+
             SessionService.AttendSession(sessionAttendance);
             Console.WriteLine("\nAttend success!");
             Console.WriteLine("Plase wait for Teacher approval to be able to view " + session.SessionName + " content");
@@ -165,10 +182,12 @@ internal class StudentView
             var sessionDetail = SessionService.GetSessionById(session.Id);
             while (true)
             {
-                Console.WriteLine($"\n{session.SessionName} ({session.StartTime} - {session.EndTime})");
+                Console.WriteLine($"\n{sessionDetail.SessionName} ({sessionDetail.StartTime} - {sessionDetail.EndTime})");
                 Console.WriteLine("Description : " + sessionDetail.SessionDescription);
 
                 var number = 1;
+                Console.WriteLine($"{number}. {sessionDetail.Forum.ForumName}");
+                number++;
                 foreach (var material in sessionDetail.MaterialList)
                 {
                     Console.WriteLine($"{number}. {material.MaterialName}");
@@ -182,14 +201,18 @@ internal class StudentView
                 Console.WriteLine(number + ". Back");
                 var selectedOpt = Utils.GetNumberInputUtil(1, number);
 
-                if (selectedOpt <= sessionDetail.MaterialList.Count)
+                if (selectedOpt == 1)
                 {
-                    MaterialMenu(sessionDetail.MaterialList[selectedOpt - 1]);
+                    ForumCommentMenu(sessionDetail.Forum);
+                }
+                else if (selectedOpt <= sessionDetail.MaterialList.Count + 1)
+                {
+                    MaterialMenu(sessionDetail.MaterialList[selectedOpt - 2]);
                     break;
                 }
-                else if (selectedOpt > sessionDetail.MaterialList.Count && selectedOpt < number)
+                else if (selectedOpt > sessionDetail.MaterialList.Count + 1 && selectedOpt < number)
                 {
-                    ShowTaskDetail(sessionDetail.TaskList[selectedOpt - sessionDetail.MaterialList.Count - 1]);
+                    ShowTaskDetail(sessionDetail.TaskList[selectedOpt - sessionDetail.MaterialList.Count - 2]);
                 }
                 else
                 {
@@ -197,7 +220,38 @@ internal class StudentView
                 }
             }
         }
+    }
 
+    void ForumCommentMenu(Forum forum)
+    {
+        while (true)
+        {
+            Console.WriteLine("\n---- " + forum.ForumName + " ----");
+            var commentList = ForumService.GetForumCommentList(forum.Id);
+            foreach (var comment in commentList)
+            {
+                Console.WriteLine($"{comment.User.FullName} - {comment.CommentContent} ({comment.CreatedAt})");
+            }
+            Console.WriteLine("1. Post New Comment");
+            Console.WriteLine("2. Back");
+            var selectedOpt = Utils.GetNumberInputUtil(1, 2);
+
+            if (selectedOpt == 1)
+            {
+                var comment = Utils.GetStringInputUtil("Your comment");
+                var forumComment = new ForumComment()
+                {
+                    User = _studentUser,
+                    CommentContent = comment,
+                    Forum = forum,
+                };
+                ForumService.PostCommentToForum(forumComment);
+            }
+            else
+            {
+                break;
+            }
+        }
     }
 
     void MaterialMenu(SessionMaterial material)
@@ -214,6 +268,7 @@ internal class StudentView
             Task = task,
             SubmissionDetailList = new List<SubmissionDetail>(),
             SubmissionDetailFileList = new List<SubmissionDetailFile>(),
+            CreatedBy = _studentUser.Id,
         };
         while (true)
         {
@@ -238,7 +293,7 @@ internal class StudentView
                 }
                 else
                 {
-                    Console.WriteLine($"{number}. {taskQuestion.QuestionContent} - Your answer: {answer}");
+                    Console.WriteLine($"{number}. {taskQuestion.QuestionContent} --- Your answer: {answer}");
                 }
 
                 if (taskQuestion.QuestionType == QuestionType.MultipleChoice)
@@ -253,10 +308,18 @@ internal class StudentView
 
             foreach (var taskFile in task.TaskFileList)
             {
-                Console.WriteLine($"{number}. {taskFile.FileName} - ({taskFile.File.FileContent}.{taskFile.File.FileExtension})");
+                var existingAnswer = submission.SubmissionDetailFileList.Find(q => q.TaskFile.Id == taskFile.Id);
+                if (existingAnswer == null)
+                {
+                    Console.WriteLine($"{number}. {taskFile.FileName} - ({taskFile.File.FileContent}.{taskFile.File.FileExtension})");
+                }
+                else
+                {
+                    Console.WriteLine($"{number}. {taskFile.FileName} - ({taskFile.File.FileContent}.{taskFile.File.FileExtension}) --- Your answer: {existingAnswer.File.FileContent}.{existingAnswer.File.FileExtension}");
+                }
                 number++;
             }
-
+            Console.WriteLine(number++ + ". Finish and Submit Task");
             Console.WriteLine(number + ". Back");
             var selectedOpt = Utils.GetNumberInputUtil(1, number, "Select question number to answer");
 
@@ -280,6 +343,8 @@ internal class StudentView
                         {
                             Question = selectedQuestion,
                             ChoiceOption = selectedQuestion.OptionList[selectedChoice - 1],
+                            Submission = new Submission(),
+                            CreatedBy = _studentUser.Id,
                         };
                         submission.SubmissionDetailList.Add(answer);
                     }
@@ -297,6 +362,8 @@ internal class StudentView
                         {
                             Question = selectedQuestion,
                             EssayAnswerContent = essayAnswer,
+                            Submission = new Submission(),
+                            CreatedBy = _studentUser.Id,
                         };
                         submission.SubmissionDetailList.Add(answer);
                     }
@@ -306,7 +373,7 @@ internal class StudentView
                     }
                 }
             }
-            else if (selectedOpt > groupedQuestionList.Count && selectedOpt < number)
+            else if (selectedOpt > groupedQuestionList.Count && selectedOpt < number - 1)
             {
                 var selectedTaskFile = task.TaskFileList[selectedOpt - groupedQuestionList.Count - 1];
                 var existingAnswer = submission.SubmissionDetailFileList.Find(tf => tf.TaskFile.Id == selectedTaskFile.Id);
@@ -322,7 +389,10 @@ internal class StudentView
                         {
                             FileContent = filename,
                             FileExtension = extension,
+                            CreatedBy = _studentUser.Id,
                         },
+                        Submission = new Submission(),
+                        CreatedBy = _studentUser.Id,
                     };
                     submission.SubmissionDetailFileList.Add(answer);
                 }
@@ -332,8 +402,15 @@ internal class StudentView
                     {
                         FileContent = filename,
                         FileExtension = extension,
+                        CreatedBy = _studentUser.Id,
                     };
                 }
+            }
+            else if (selectedOpt == number - 1)
+            {
+                TaskSubmissionService.SubmitTask(submission);
+                Console.WriteLine("\nYou successfully submit this task");
+                break;
             }
             else
             {

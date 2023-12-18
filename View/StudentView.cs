@@ -4,6 +4,7 @@ using Lms.Constant;
 using Lms.IService;
 using Lms.Model;
 using Lms.Utils;
+using System.Threading.Tasks;
 
 internal class StudentView
 {
@@ -193,9 +194,18 @@ internal class StudentView
                     Console.WriteLine($"{number}. {material.MaterialName}");
                     number++;
                 }
+                var submissionList = TaskSubmissionService.GetSubmissionListBySession(sessionDetail.Id);
                 foreach (var task in sessionDetail.TaskList)
                 {
-                    Console.WriteLine($"{number}. {task.TaskName}");
+                    var submission = submissionList.Find(s => s.Task.Id == task.Id);
+                    if (submission == null)
+                    {
+                        Console.WriteLine($"{number}. {task.TaskName}");
+                    }
+                    else
+                    {
+                        Console.WriteLine($"{number}. {task.TaskName} - (submitted: {submission.CreatedAt})");
+                    }
                     number++;
                 }
                 Console.WriteLine(number + ". Back");
@@ -212,7 +222,19 @@ internal class StudentView
                 }
                 else if (selectedOpt > sessionDetail.MaterialList.Count + 1 && selectedOpt < number)
                 {
-                    ShowTaskDetail(sessionDetail.TaskList[selectedOpt - sessionDetail.MaterialList.Count - 2]);
+                    var selectedTask = sessionDetail.TaskList[selectedOpt - sessionDetail.MaterialList.Count - 2];
+                    var submission = submissionList.Find(s => s.Task.Id == selectedTask.Id);
+                    if (submission == null)
+                    {
+                        ShowTaskDetail(selectedTask);
+                    }
+                    else
+                    {
+                        Console.WriteLine("\n" + selectedTask.TaskName + " submission detail");
+                        Console.WriteLine("Submitted: " + submission.CreatedAt);
+                        Console.WriteLine("Score: " + submission.Grade);
+                        Console.WriteLine("Teacher Notes: " + submission.TeacherNotes);
+                    }
                 }
                 else
                 {

@@ -53,15 +53,17 @@ internal class SessionAttendanceRepo : ISessionAttendanceRepo
         var reader = sqlCommand.ExecuteReader();
         if (reader.Read())
         {
-            if ((bool?)reader["is_approved"] != null)
+            var isApproved = (bool?)reader["is_approved"];
+            if (isApproved != null)
             {
-                sessionAttendance.IsApproved = (bool)reader["is_approved"];
-            }
-            else
-            {
-                return null;
+                sessionAttendance.IsApproved = (bool)isApproved;
             }
         }
+        else
+        {
+            sessionAttendance = null;
+        }
+
         conn.Close();
 
         return sessionAttendance;

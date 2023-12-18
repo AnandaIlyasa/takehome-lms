@@ -178,3 +178,18 @@ SELECT @@identitity
 	"t_m_user u ON fc.user_id = u.id " +
 "WHERE " +
 	"fc.forum_id = 2"
+
+-- get submission list by session_id
+"SELECT " +
+	"sub.id, " +
+	"sub.grade, " +
+	"sub.teacher_notes, " +
+	"sub.task_id " +
+"FROM " +
+	"t_r_submission sub " +
+"LEFT JOIN " +
+	"t_m_task t ON sub.task_id = t.id " +
+"LEFT JOIN " +
+	"t_m_session s ON t.session_id = s.id " +
+"WHERE " +
+	"s.id = 1"

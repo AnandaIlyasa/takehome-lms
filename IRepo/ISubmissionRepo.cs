@@ -4,5 +4,6 @@ namespace Lms.IRepo;
 
 internal interface ISubmissionRepo
 {
-    Model.Submission CreateNewSubmission(Submission submission);
+    Submission CreateNewSubmission(Submission submission);
+    List<Submission> GetSubmissionListBySession(int sessionId);
 }

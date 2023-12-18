@@ -5,4 +5,5 @@ namespace Lms.IService;
 internal interface ITaskSubmissionService
 {
     void SubmitTask(Submission submission);
+    List<Submission> GetSubmissionListBySession(int sessionId);
 }

@@ -11,6 +11,12 @@ internal class TaskSubmissionService : ITaskSubmissionService
     public ISubmissionDetailFileRepo SubmissionDetailFileRepo { private get; init; }
     public ILMSFileRepo FileRepo { private get; init; }
 
+    public List<Submission> GetSubmissionListBySession(int sessionId)
+    {
+        var submissionList = SubmissionRepo.GetSubmissionListBySession(sessionId);
+        return submissionList;
+    }
+
     public void SubmitTask(Submission submission)
     {
         var insertedSubmission = SubmissionRepo.CreateNewSubmission(submission);

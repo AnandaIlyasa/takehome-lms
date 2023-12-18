@@ -218,7 +218,6 @@ internal class StudentView
                 else if (selectedOpt <= sessionDetail.MaterialList.Count + 1)
                 {
                     MaterialMenu(sessionDetail.MaterialList[selectedOpt - 2]);
-                    break;
                 }
                 else if (selectedOpt > sessionDetail.MaterialList.Count + 1 && selectedOpt < number)
                 {
@@ -249,7 +248,9 @@ internal class StudentView
         while (true)
         {
             Console.WriteLine("\n---- " + forum.ForumName + " ----");
-            var commentList = ForumService.GetForumCommentList(forum.Id);
+            var commentList = ForumService.GetForumCommentList(forum.Id)
+                                .OrderBy(c => c.CreatedAt)
+                                .ToList();
             foreach (var comment in commentList)
             {
                 Console.WriteLine($"{comment.User.FullName} - {comment.CommentContent} ({comment.CreatedAt})");

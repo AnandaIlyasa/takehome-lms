@@ -1,5 +1,6 @@
 ﻿namespace Lms.IRepo;
 
+using Lms.Config;
 using Lms.Model;
 
 internal interface IUserRepo

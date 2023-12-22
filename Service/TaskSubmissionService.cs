@@ -1,4 +1,5 @@
-﻿using Lms.IRepo;
+﻿using Lms.Config;
+using Lms.IRepo;
 using Lms.IService;
 using Lms.Model;
 
@@ -6,31 +7,39 @@ namespace Lms.Service;
 
 internal class TaskSubmissionService : ITaskSubmissionService
 {
-    public ISubmissionRepo SubmissionRepo { private get; init; }
-    public ISubmissionDetailRepo SubmissionDetailRepo { private get; init; }
-    public ISubmissionDetailFileRepo SubmissionDetailFileRepo { private get; init; }
-    public ILMSFileRepo FileRepo { private get; init; }
+    readonly ISubmissionRepo _submissionRepo;
+    readonly ISubmissionDetailRepo _submissionDetailRepo;
+    readonly ISubmissionDetailFileRepo _submissionDetailFileRepo;
+    readonly ILMSFileRepo _fileRepo;
+
+    public TaskSubmissionService(ISubmissionRepo submissionRepo, ISubmissionDetailRepo submissionDetailRepo, ISubmissionDetailFileRepo submissionDetailFileRepo, ILMSFileRepo fileRepo)
+    {
+        _submissionRepo = submissionRepo;
+        _submissionDetailRepo = submissionDetailRepo;
+        _submissionDetailFileRepo = submissionDetailFileRepo;
+        _fileRepo = fileRepo;
+    }
 
     public List<Submission> GetSubmissionListBySession(int sessionId)
     {
-        var submissionList = SubmissionRepo.GetSubmissionListBySession(sessionId);
+        var submissionList = _submissionRepo.GetSubmissionListBySession(sessionId);
         return submissionList;
     }
 
     public void SubmitTask(Submission submission)
     {
-        var insertedSubmission = SubmissionRepo.CreateNewSubmission(submission);
+        var insertedSubmission = _submissionRepo.CreateNewSubmission(submission);
         foreach (var fileSubmission in submission.SubmissionDetailFileList)
         {
-            var insertedFile = FileRepo.CreateNewFile(fileSubmission.File);
+            var insertedFile = _fileRepo.CreateNewFile(fileSubmission.File);
             fileSubmission.File.Id = insertedFile.Id;
             fileSubmission.Submission.Id = insertedSubmission.Id;
-            SubmissionDetailFileRepo.CreateNewSubmissionDetailFile(fileSubmission);
+            _submissionDetailFileRepo.CreateNewSubmissionDetailFile(fileSubmission);
         }
         foreach (var questionSubmission in submission.SubmissionDetailList)
         {
             questionSubmission.Submission.Id = insertedSubmission.Id;
-            SubmissionDetailRepo.CreateNewSubmissionDetail(questionSubmission);
+            _submissionDetailRepo.CreateNewSubmissionDetail(questionSubmission);
         }
     }
 }

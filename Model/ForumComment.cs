@@ -1,8 +1,22 @@
-﻿namespace Lms.Model;
+﻿using System.ComponentModel.DataAnnotations.Schema;
 
+namespace Lms.Model;
+
+[Table("t_r_forum_comment")]
 internal class ForumComment : BaseModel
 {
-    public string CommentContent { get; init; }
-    public User User { get; init; }
-    public Forum Forum { get; init; }
+    [Column("comment_content")]
+    public string CommentContent { get; set; }
+
+    [Column("user_id")]
+    public int UserId { get; set; }
+
+    [ForeignKey(nameof(UserId))]
+    public User User { get; set; }
+
+    [Column("forum_id")]
+    public int ForumId { get; set; }
+
+    [ForeignKey(nameof(ForumId))]
+    public Forum Forum { get; set; }
 }

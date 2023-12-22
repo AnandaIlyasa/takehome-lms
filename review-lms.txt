@@ -1,0 +1,15 @@
+bikin foreign key image_id di class
+buat table session (pisah antara learning (date) dan session), forum | nanti di learning akan ada ck (date, class_id)
+session ada ck(start, end, date_id)
+ck di attendance
+task, session, session_material, forum ada nama
+task ada duration
+bikin task_detail biar pertanyaan sebelumnya bisa dipakai lagi di task yang akan datang.
+ganti task_description jadi task name
+tambah notes di task_submission
+tambah table submission_detail (mengganti table task_answer / task_answer dihilangkan saja)
+ganti task_submission_file -> task_submission_detail_file
+
+don't return inside using(context) {} in service
+
+finish student, teacher (approve, review & score), admin (create class)

@@ -1,12 +1,13 @@
 ﻿namespace Lms.Repo;
 
+using Lms.Config;
 using Lms.Helper;
 using Lms.IRepo;
 using Lms.Model;
 
 internal class LMSFileRepo : ILMSFileRepo
 {
-    public DatabaseHelper DBHelper { private get; init; }
+    public DatabaseHelper DBHelper { private get; set; }
 
     public LMSFile CreateNewFile(LMSFile file)
     {

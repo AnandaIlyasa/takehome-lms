@@ -7,10 +7,18 @@ using Lms.Model;
 
 internal class MainView
 {
-    public SuperAdminView SuperAdminView { private get; init; }
-    public TeacherView TeacherView { private get; init; }
-    public StudentView StudentView { private get; init; }
-    public IUserService UserService { private get; init; }
+    readonly SuperAdminView _superAdminView;
+    readonly TeacherView _teacherView;
+    readonly StudentView _studentView;
+    readonly IUserService _userService;
+
+    public MainView(SuperAdminView superAdminView, TeacherView teacherView, StudentView studentView, IUserService userService)
+    {
+        _superAdminView = superAdminView;
+        _teacherView = teacherView;
+        _studentView = studentView;
+        _userService = userService;
+    }
 
     public void MainMenu()
     {
@@ -38,27 +46,27 @@ internal class MainView
         var email = Utils.GetStringInputUtil("Email");
         var password = Utils.GetStringInputUtil("Password");
 
-        var user = UserService.Login(email, password);
+        var user = _userService.Login(email, password);
         while (user == null)
         {
             Console.WriteLine("\nCredential is wrong!\n");
 
             email = Utils.GetStringInputUtil("Email");
             password = Utils.GetStringInputUtil("Password");
-            user = UserService.Login(email, password);
+            user = _userService.Login(email, password);
         }
 
-        if (user.Role.RoleCode == UserRole.SuperAdmin)
+        if (user.Role.RoleCode == RoleCode.SuperAdmin)
         {
-            SuperAdminView.MainMenu();
+            _superAdminView.MainMenu();
         }
-        else if (user.Role.RoleCode == UserRole.Teacher)
+        else if (user.Role.RoleCode == RoleCode.Teacher)
         {
-            TeacherView.MainMenu();
+            _teacherView.MainMenu();
         }
-        else if (user.Role.RoleCode == UserRole.Student)
+        else if (user.Role.RoleCode == RoleCode.Student)
         {
-            StudentView.MainMenu(user);
+            _studentView.MainMenu(user);
         }
         else
         {
@@ -86,9 +94,8 @@ internal class MainView
                 FullName = fullName,
                 Email = email,
                 Pass = password,
-                Role = new Role() { Id = 2 },
             };
-            UserService.CreateUser(student);
+            _userService.CreateNewStudent(student);
             Console.WriteLine($"\nNew student account for {fullName} with email {email} successfully created");
         }
     }

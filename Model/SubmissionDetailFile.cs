@@ -1,8 +1,24 @@
-﻿namespace Lms.Model;
+﻿using Microsoft.EntityFrameworkCore;
+using System.ComponentModel.DataAnnotations.Schema;
 
+namespace Lms.Model;
+
+[Table("t_r_submission_detail_file")]
+[Index(nameof(SubmissionId), nameof(FileId), IsUnique = true, Name = "submission_file_ck")]
 internal class SubmissionDetailFile : BaseModel
 {
-    public Submission Submission { get; init; }
+    [Column("submission_id")]
+    public int SubmissionId { get; set; }
+
+    [ForeignKey(nameof(SubmissionId))]
+    public Submission Submission { get; set; }
+
+    [Column("file_id")]
+    public int FileId { get; set; }
+
+    [ForeignKey(nameof(FileId))]
     public LMSFile File { get; set; }
+
+    [NotMapped]
     public TaskFile TaskFile { get; set; } // not mapped
 }

@@ -1,6 +1,6 @@
 ﻿namespace Lms.Constant;
 
-static class UserRole
+static class RoleCode
 {
     public static readonly string SuperAdmin = "SA";
     public static readonly string Teacher = "TCH";

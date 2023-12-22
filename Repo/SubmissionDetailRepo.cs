@@ -1,4 +1,5 @@
-﻿using Lms.Helper;
+﻿using Lms.Config;
+using Lms.Helper;
 using Lms.IRepo;
 using Lms.Model;
 
@@ -8,7 +9,7 @@ internal class SubmissionDetailRepo : ISubmissionDetailRepo
 {
     public DatabaseHelper DBHelper { private get; init; }
 
-    public SubmissionDetail CreateNewSubmissionDetail(SubmissionDetail submissionDetail)
+    public SubmissionDetailQuestion CreateNewSubmissionDetail(SubmissionDetailQuestion submissionDetail)
     {
         const string sqlQuery =
             "INSERT INTO " +

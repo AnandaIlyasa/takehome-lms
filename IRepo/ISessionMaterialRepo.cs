@@ -1,8 +1,9 @@
-﻿using Lms.Model;
+﻿using Lms.Config;
+using Lms.Model;
 
 namespace Lms.IRepo;
 
 internal interface ISessionMaterialRepo
 {
-    List<SessionMaterial> GetSessionMaterialListBySession(int sessionId);
+    List<SessionMaterial> GetMaterialListBySession(int sessionId);
 }

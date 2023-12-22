@@ -1,10 +1,26 @@
-﻿namespace Lms.Model;
+﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
+namespace Lms.Model;
+
+[Table("t_m_learning")]
 internal class Learning : BaseModel
 {
-    public string LearningName { get; init; }
-    public string? LearningDescription { get; init; }
-    public DateOnly LearningDate { get; init; }
-    public Class Class { get; init; }
+    [Column("learning_name"), MaxLength(30)]
+    public string LearningName { get; set; }
+
+    [Column("learning_description")]
+    public string? LearningDescription { get; set; }
+
+    [Column("learning_date")]
+    public DateOnly LearningDate { get; set; }
+
+    [Column("class_id")]
+    public int ClassId { get; set; }
+
+    [ForeignKey(nameof(ClassId))]
+    public Class Class { get; set; }
+
+    [NotMapped]
     public List<Session> SessionList { get; set; } // not mapped
 }

@@ -1,22 +1,42 @@
 ﻿using Lms.IService;
 using Lms.Model;
 using Lms.IRepo;
+using Lms.Helper;
+using Lms.Config;
+using Lms.Constant;
 
 namespace Lms.Service;
 
 internal class UserService : IUserService
 {
-    public IUserRepo UserRepo { private get; init; }
+    readonly IUserRepo _userRepo;
+    readonly IRoleRepo _roleRepo;
+    readonly SessionHelper _sessionHelper;
 
-    public User CreateUser(User user)
+    public UserService(IUserRepo userRepo, IRoleRepo roleRepo, SessionHelper sessionHelper)
     {
-        var newUser = UserRepo.CreateNewUser(user);
-        return newUser;
+        _userRepo = userRepo;
+        _sessionHelper = sessionHelper;
+        _roleRepo = roleRepo;
+    }
+
+    public User CreateNewStudent(User user)
+    {
+        var role = _roleRepo.GetRoleByCode(RoleCode.Student);
+        user.RoleId = role.Id;
+
+        user.CreatedAt = DateTime.Now;
+        user = _userRepo.CreateNewUser(user);
+        return user;
     }
 
     public User? Login(string email, string password)
     {
-        User? user = UserRepo.GetUserByEmailAndPassword(email, password);
+        var user = _userRepo.GetUserByEmailAndPassword(email, password);
+        if (user != null)
+        {
+            _sessionHelper.UserId = user.Id;
+        }
         return user;
     }
 }

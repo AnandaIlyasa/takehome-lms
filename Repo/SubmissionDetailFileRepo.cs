@@ -1,4 +1,5 @@
-﻿using Lms.Helper;
+﻿using Lms.Config;
+using Lms.Helper;
 using Lms.IRepo;
 using Lms.Model;
 
@@ -6,7 +7,7 @@ namespace Lms.Repo;
 
 internal class SubmissionDetailFileRepo : ISubmissionDetailFileRepo
 {
-    public DatabaseHelper DBHelper { private get; init; }
+    public DatabaseHelper DBHelper { private get; set; }
 
     public SubmissionDetailFile CreateNewSubmissionDetailFile(SubmissionDetailFile submissionDetailFile)
     {

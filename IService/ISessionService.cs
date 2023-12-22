@@ -4,7 +4,7 @@ namespace Lms.IService;
 
 internal interface ISessionService
 {
-    SessionAttendance? GetSessionAttendanceStatusByStudent(SessionAttendance sessionAttendance);
-    SessionAttendance AttendSession(SessionAttendance sessionAttendance);
+    SessionAttendance? GetStudentAttendanceStatus(int sessionId);
+    SessionAttendance AttendSession(int sessionId);
     Session GetSessionById(int sessionId);
 }

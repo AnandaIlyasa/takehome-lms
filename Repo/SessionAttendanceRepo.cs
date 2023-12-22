@@ -1,4 +1,5 @@
-﻿using Lms.Helper;
+﻿using Lms.Config;
+using Lms.Helper;
 using Lms.IRepo;
 using Lms.Model;
 
@@ -7,65 +8,56 @@ namespace Lms.Repo;
 internal class SessionAttendanceRepo : ISessionAttendanceRepo
 {
     public DatabaseHelper DBHelper { private get; init; }
+    readonly DBContextConfig _context;
+
+    public SessionAttendanceRepo(DBContextConfig context)
+    {
+        _context = context;
+    }
 
     public SessionAttendance CreateNewSessionAttendance(SessionAttendance sessionAttendance)
     {
-        const string sqlQuery =
-            "INSERT INTO " +
-                "t_r_session_attendance (is_approved, student_id, session_id, created_by, created_at, ver, is_active) " +
-            "VALUES " +
-                "(@is_approved, @student_id, @session_id, 1, NOW(), 0, true) " +
-            "RETURNING id";
-
-        var conn = DBHelper.GetConnection();
-        var sqlCommand = conn.CreateCommand();
-        sqlCommand.CommandText = sqlQuery;
-        sqlCommand.Parameters.AddWithValue("@is_approved", sessionAttendance.IsApproved);
-        sqlCommand.Parameters.AddWithValue("@student_id", sessionAttendance.Student.Id);
-        sqlCommand.Parameters.AddWithValue("@session_id", sessionAttendance.Session.Id);
-
-        conn.Open();
-        var newSessionAttendanceId = (int)sqlCommand.ExecuteScalar();
-        conn.Close();
-
-        sessionAttendance.Id = newSessionAttendanceId;
+        _context.SessionAttendances.Add(sessionAttendance);
+        _context.SaveChanges();
         return sessionAttendance;
     }
 
-    public SessionAttendance? GetSessionAttendanceStatus(SessionAttendance sessionAttendance)
+    public SessionAttendance? GetSessionAttendanceStatus(int sessionId, int studentId)
     {
-        const string sqlQuery =
-            "SELECT  " +
-                "is_approved " +
-            "FROM  " +
-                "t_r_session_attendance " +
-            "WHERE " +
-                "student_id = @student_id " +
-                "AND session_id = @session_id";
+        //const string sqlQuery =
+        //    "SELECT  " +
+        //        "is_approved " +
+        //    "FROM  " +
+        //        "t_r_session_attendance " +
+        //    "WHERE " +
+        //        "student_id = @student_id " +
+        //        "AND session_id = @session_id";
 
-        var conn = DBHelper.GetConnection();
-        var sqlCommand = conn.CreateCommand();
-        sqlCommand.CommandText = sqlQuery;
-        sqlCommand.Parameters.AddWithValue("@student_id", sessionAttendance.Student.Id);
-        sqlCommand.Parameters.AddWithValue("@session_id", sessionAttendance.Session.Id);
+        //var conn = DBHelper.GetConnection();
+        //var sqlCommand = conn.CreateCommand();
+        //sqlCommand.CommandText = sqlQuery;
+        //sqlCommand.Parameters.AddWithValue("@student_id", sessionAttendance.Student.Id);
+        //sqlCommand.Parameters.AddWithValue("@session_id", sessionAttendance.Session.Id);
 
-        conn.Open();
-        var reader = sqlCommand.ExecuteReader();
-        if (reader.Read())
-        {
-            var isApproved = (bool?)reader["is_approved"];
-            if (isApproved != null)
-            {
-                sessionAttendance.IsApproved = (bool)isApproved;
-            }
-        }
-        else
-        {
-            sessionAttendance = null;
-        }
+        //conn.Open();
+        //var reader = sqlCommand.ExecuteReader();
+        //if (reader.Read())
+        //{
+        //    var isApproved = (bool?)reader["is_approved"];
+        //    if (isApproved != null)
+        //    {
+        //        sessionAttendance.IsApproved = (bool)isApproved;
+        //    }
+        //}
+        //else
+        //{
+        //    sessionAttendance = null;
+        //}
 
-        conn.Close();
-
+        //conn.Close();
+        var sessionAttendance = _context.SessionAttendances
+                                .Where(sa => sa.StudentId == studentId && sa.SessionId == sessionId)
+                                .FirstOrDefault();
         return sessionAttendance;
     }
 }

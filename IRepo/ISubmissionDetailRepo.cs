@@ -1,8 +1,9 @@
-﻿using Lms.Model;
+﻿using Lms.Config;
+using Lms.Model;
 
 namespace Lms.IRepo;
 
 internal interface ISubmissionDetailRepo
 {
-    SubmissionDetail CreateNewSubmissionDetail(SubmissionDetail submissionDetail);
+    SubmissionDetailQuestion CreateNewSubmissionDetail(SubmissionDetailQuestion submissionDetail);
 }

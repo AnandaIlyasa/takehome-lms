@@ -1,7 +1,21 @@
-﻿namespace Lms.Model;
+﻿using Microsoft.EntityFrameworkCore;
+using System.ComponentModel.DataAnnotations.Schema;
+using System.Xml.Linq;
+namespace Lms.Model;
 
+[Table("t_r_student_class")]
+[Index(nameof(ClassId), nameof(StudentId), IsUnique = true, Name = "student_class_ck")]
 internal class StudentClass : BaseModel
 {
-    public Class Class { get; init; }
-    public User Student { get; init; }
+    [Column("class_id")]
+    public int ClassId { get; set; }
+
+    [ForeignKey(nameof(ClassId))]
+    public Class Class { get; set; }
+
+    [Column("student_id")]
+    public int StudentId { get; set; }
+
+    [ForeignKey(nameof(StudentId))]
+    public User Student { get; set; }
 }

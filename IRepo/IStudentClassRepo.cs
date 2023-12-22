@@ -1,4 +1,5 @@
-﻿using Lms.Model;
+﻿using Lms.Config;
+using Lms.Model;
 
 namespace Lms.IRepo;
 

@@ -4,5 +4,5 @@ namespace Lms.IRepo;
 
 internal interface IForumRepo
 {
-    List<ForumComment> GetForumCommentListByForum(int forumId);
+    Forum GetForumBySession(int sessionId);
 }

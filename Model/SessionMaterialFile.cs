@@ -1,8 +1,23 @@
-﻿namespace Lms.Model;
+﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
+namespace Lms.Model;
+
+[Table("t_r_session_material_file")]
 internal class SessionMaterialFile : BaseModel
 {
-    public string? FileName { get; init; }
-    public LMSFile File { get; init; }
-    public SessionMaterial Material { get; init; }
+    [Column("file_name"), MaxLength(30)]
+    public string? FileName { get; set; }
+
+    [Column("file_id")]
+    public int FileId { get; set; }
+
+    [ForeignKey(nameof(FileId))]
+    public LMSFile File { get; set; }
+
+    [Column("material_id")]
+    public int MaterialId { get; set; }
+
+    [ForeignKey(nameof(MaterialId))]
+    public SessionMaterial Material { get; set; }
 }

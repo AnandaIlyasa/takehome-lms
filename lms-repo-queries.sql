@@ -146,25 +146,25 @@ VALUES
 SELECT @@identitity
 
 -- get unenrolled class
-"SELECT " +
-	"c.id, " +
-    "c.class_code, " +
-    "c.class_title, " +
-    "c.class_description " +
-"FROM  " +
-	"t_m_class c " +
-"WHERE " +
-	"c.id NOT IN " +
-	"( " +
-		"SELECT " +
-			"c.id " +
-		"FROM " +
-			"t_m_class c " +
-		"JOIN " +
-			"t_r_student_class sc ON c.id = sc.class_id " +
-		"WHERE " +
-			"sc.student_id = 2 " +
-	")"
+SELECT 
+	c.id, 
+    c.class_code, 
+    c.class_title, 
+    c.class_description 
+FROM  
+	t_m_class c 
+WHERE 
+	c.id NOT IN 
+	( 
+		SELECT 
+			c.id 
+		FROM 
+			t_m_class c 
+		JOIN 
+			t_r_student_class sc ON c.id = sc.class_id 
+		WHERE 
+			sc.student_id = 2 
+	)
 
 -- get comment list by forum id
 "SELECT " +
@@ -193,3 +193,13 @@ SELECT @@identitity
 	"t_m_session s ON t.session_id = s.id " +
 "WHERE " +
 	"s.id = 1"
+
+-- get question list by task id
+SELECT
+	*
+FROM
+	t_m_task_question q 
+INNER JOIN
+	t_r_task_detail td ON q.id = td.task_question_id 
+WHERE 
+	td.task_id = 2

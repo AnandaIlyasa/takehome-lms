@@ -1,4 +1,5 @@
 ﻿using Lms.Config;
+using Lms.Helper;
 using Lms.IRepo;
 using Lms.IService;
 using Lms.Model;
@@ -8,16 +9,25 @@ namespace Lms.Service;
 internal class TaskSubmissionService : ITaskSubmissionService
 {
     readonly ISubmissionRepo _submissionRepo;
-    readonly ISubmissionDetailRepo _submissionDetailRepo;
+    readonly ISubmissionDetailQuestionRepo _submissionDetailRepo;
     readonly ISubmissionDetailFileRepo _submissionDetailFileRepo;
     readonly ILMSFileRepo _fileRepo;
+    readonly SessionHelper _sessionHelper;
 
-    public TaskSubmissionService(ISubmissionRepo submissionRepo, ISubmissionDetailRepo submissionDetailRepo, ISubmissionDetailFileRepo submissionDetailFileRepo, ILMSFileRepo fileRepo)
+    public TaskSubmissionService
+    (
+        ISubmissionRepo submissionRepo,
+        ISubmissionDetailQuestionRepo submissionDetailRepo,
+        ISubmissionDetailFileRepo submissionDetailFileRepo,
+        ILMSFileRepo fileRepo,
+        SessionHelper sessionHelper
+    )
     {
         _submissionRepo = submissionRepo;
         _submissionDetailRepo = submissionDetailRepo;
         _submissionDetailFileRepo = submissionDetailFileRepo;
         _fileRepo = fileRepo;
+        _sessionHelper = sessionHelper;
     }
 
     public List<Submission> GetSubmissionListBySession(int sessionId)
@@ -28,18 +38,48 @@ internal class TaskSubmissionService : ITaskSubmissionService
 
     public void SubmitTask(Submission submission)
     {
-        var insertedSubmission = _submissionRepo.CreateNewSubmission(submission);
-        foreach (var fileSubmission in submission.SubmissionDetailFileList)
+        using (var context = new DBContextConfig())
         {
-            var insertedFile = _fileRepo.CreateNewFile(fileSubmission.File);
-            fileSubmission.File.Id = insertedFile.Id;
-            fileSubmission.Submission.Id = insertedSubmission.Id;
-            _submissionDetailFileRepo.CreateNewSubmissionDetailFile(fileSubmission);
-        }
-        foreach (var questionSubmission in submission.SubmissionDetailList)
-        {
-            questionSubmission.Submission.Id = insertedSubmission.Id;
-            _submissionDetailRepo.CreateNewSubmissionDetail(questionSubmission);
+            using (var trx = context.Database.BeginTransaction())
+            {
+                try
+                {
+                    submission.StudentId = _sessionHelper.UserId;
+                    submission.CreatedBy = _sessionHelper.UserId;
+                    submission.CreatedAt = DateTime.Now;
+                    var insertedSubmission = _submissionRepo.CreateNewSubmission(submission);
+
+                    foreach (var questionSubmission in submission.SubmissionDetailQuestionList)
+                    {
+                        questionSubmission.SubmissionId = insertedSubmission.Id;
+                        questionSubmission.CreatedBy = _sessionHelper.UserId;
+                        questionSubmission.CreatedAt = DateTime.Now;
+                        _submissionDetailRepo.CreateNewSubmissionDetailQuestion(questionSubmission);
+                    }
+
+                    foreach (var fileSubmission in submission.SubmissionDetailFileList)
+                    {
+                        fileSubmission.File.CreatedBy = _sessionHelper.UserId;
+                        fileSubmission.File.CreatedAt = DateTime.Now;
+                        fileSubmission.File.FileExtension = "qwerqwerqwer";
+                        var insertedFile = _fileRepo.CreateNewFile(fileSubmission.File);
+
+                        fileSubmission.FileId = insertedFile.Id;
+                        fileSubmission.SubmissionId = insertedSubmission.Id;
+                        fileSubmission.CreatedBy = _sessionHelper.UserId;
+                        fileSubmission.CreatedAt = DateTime.Now;
+                        _submissionDetailFileRepo.CreateNewSubmissionDetailFile(fileSubmission);
+                    }
+
+                    trx.Commit();
+                }
+                catch (Exception ex)
+                {
+                    trx.Rollback();
+                    Console.WriteLine("error occured: " + ex.Message);
+                }
+            }
+
         }
     }
 }

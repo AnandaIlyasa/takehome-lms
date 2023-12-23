@@ -26,7 +26,7 @@ internal class Submission : BaseModel
     public LMSTask Task { get; set; }
 
     [NotMapped]
-    public List<SubmissionDetailQuestion> SubmissionDetailList { get; set; } // not mapped
+    public List<SubmissionDetailQuestion> SubmissionDetailQuestionList { get; set; } // not mapped
 
     [NotMapped]
     public List<SubmissionDetailFile> SubmissionDetailFileList { get; set; } // not mapped

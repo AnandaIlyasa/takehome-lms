@@ -25,6 +25,8 @@ internal class UserService : IUserService
         var role = _roleRepo.GetRoleByCode(RoleCode.Student);
         user.RoleId = role.Id;
 
+        var systemUser = _userRepo.GetUserByRole(RoleCode.System);
+        user.CreatedBy = systemUser.Id;
         user.CreatedAt = DateTime.Now;
         user = _userRepo.CreateNewUser(user);
         return user;

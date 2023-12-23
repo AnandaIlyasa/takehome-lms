@@ -1,3 +1,46 @@
+select *, xmin from t_r_session_attendance
+
+SELECT 
+    sub.id, 
+    sub.grade, 
+    sub.teacher_notes, 
+    sub.task_id, 
+    sub.created_at 
+FROM 
+    t_r_submission sub 
+LEFT JOIN 
+    t_m_task t ON sub.task_id = t.id 
+LEFT JOIN 
+    t_m_session s ON t.session_id = s.id 
+WHERE 
+    s.id = 1;
+
+SELECT
+	*
+FROM
+	t_m_task_question q 
+INNER JOIN
+	t_r_task_detail td ON q.id = td.task_question_id 
+WHERE 
+	td.task_id = 3;
+
+SELECT
+	*
+FROM
+	t_r_task_file tf 
+INNER JOIN
+	t_r_task_detail td ON tf.id = td.task_file_id 
+WHERE 
+	td.task_id = 3;
+	
+select * from t_m_task 
+	
+select * from t_m_file
+select * from t_r_submission_detail_question 
+select * from t_r_submission_detail_file 
+select * from t_r_submission
+truncate table t_r_submission cascade
+
 -- get class list by student
 SELECT
 	c.id,
@@ -180,19 +223,20 @@ WHERE
 	"fc.forum_id = 2"
 
 -- get submission list by session_id
-"SELECT " +
-	"sub.id, " +
-	"sub.grade, " +
-	"sub.teacher_notes, " +
-	"sub.task_id " +
-"FROM " +
-	"t_r_submission sub " +
-"LEFT JOIN " +
-	"t_m_task t ON sub.task_id = t.id " +
-"LEFT JOIN " +
-	"t_m_session s ON t.session_id = s.id " +
-"WHERE " +
-	"s.id = 1"
+SELECT 
+    sub.id, 
+    sub.grade, 
+    sub.teacher_notes, 
+    sub.task_id, 
+    sub.created_at 
+FROM 
+    t_r_submission sub 
+LEFT JOIN 
+    t_m_task t ON sub.task_id = t.id 
+LEFT JOIN 
+    t_m_session s ON t.session_id = s.id 
+WHERE 
+    s.id = 1
 
 -- get question list by task id
 SELECT

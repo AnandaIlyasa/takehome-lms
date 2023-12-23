@@ -1,5 +1,4 @@
 ﻿using Lms.Config;
-using Lms.Helper;
 using Lms.IRepo;
 using Lms.Model;
 using Microsoft.EntityFrameworkCore;
@@ -28,6 +27,15 @@ internal class UserRepo : IUserRepo
                 .Where(u => u.Email == email && EF.Functions.Like(u.Pass, password) && u.IsActive == true)
                 .Include(u => u.Role)
                 .FirstOrDefault();
+        return user;
+    }
+
+    public User GetUserByRole(string roleCode)
+    {
+        var user = _context.Users
+                    .Include(u => u.Role)
+                    .Where(u => u.Role.RoleCode == roleCode)
+                    .First();
         return user;
     }
 }

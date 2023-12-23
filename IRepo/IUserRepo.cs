@@ -7,4 +7,5 @@ internal interface IUserRepo
 {
     User? GetUserByEmailAndPassword(string email, string password);
     User CreateNewUser(User user);
+    User GetUserByRole(string roleCode);
 }

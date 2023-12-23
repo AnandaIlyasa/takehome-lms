@@ -255,9 +255,7 @@ internal class StudentView
         while (true)
         {
             Console.WriteLine("\n---- " + forum.ForumName + " ----");
-            var commentList = _forumService.GetForumCommentList(forum.Id)
-                                .OrderBy(c => c.CreatedAt)
-                                .ToList();
+            var commentList = _forumService.GetForumCommentList(forum.Id);
             foreach (var comment in commentList)
             {
                 Console.WriteLine($"{comment.User.FullName} - {comment.CommentContent} ({comment.CreatedAt})");
@@ -294,11 +292,9 @@ internal class StudentView
     {
         var submission = new Submission()
         {
-            Student = _studentUser,
-            Task = task,
-            SubmissionDetailList = new List<SubmissionDetailQuestion>(),
+            TaskId = task.Id,
+            SubmissionDetailQuestionList = new List<SubmissionDetailQuestion>(),
             SubmissionDetailFileList = new List<SubmissionDetailFile>(),
-            CreatedBy = _studentUser.Id,
         };
         while (true)
         {
@@ -306,23 +302,20 @@ internal class StudentView
             Console.WriteLine("Description: " + task.TaskDescription);
             Console.WriteLine("Duration: " + task.Duration + " minutes\n");
 
-            // grouping question based on type (pg / essay)
-            var groupedQuestionList = task.TaskQuestionList
-                                        .OrderByDescending(q => q.QuestionType)
-                                        .ToList();
+            var questionList = task.TaskQuestionList;
             var number = 1;
-            foreach (var taskQuestion in groupedQuestionList)
+            foreach (var taskQuestion in questionList)
             {
-                var existingAnswer = submission.SubmissionDetailList.Find(q => q.Question.Id == taskQuestion.Id);
+                var existingAnswer = submission.SubmissionDetailQuestionList.Find(q => q.QuestionId == taskQuestion.Id);
                 string? answer = null;
                 if (existingAnswer?.EssayAnswerContent is string) answer = existingAnswer.EssayAnswerContent;
                 else if (existingAnswer?.ChoiceOption != null) answer = $"({existingAnswer?.ChoiceOption?.OptionChar}) {existingAnswer?.ChoiceOption?.OptionText}";
 
-                if (answer == null) // show question only if no answer found
+                if (answer == null)
                 {
                     Console.WriteLine($"{number}. {taskQuestion.QuestionContent}");
                 }
-                else // show question + answer if candidate already answer the question
+                else
                 {
                     Console.WriteLine($"{number}. {taskQuestion.QuestionContent} --- Your answer: {answer}");
                 }
@@ -339,14 +332,12 @@ internal class StudentView
 
             foreach (var taskFile in task.TaskFileList)
             {
-                // TODO : show answer file list (currently only able to show 1 answer file)
-                // TODO : able to show multiple file in taskFile
                 var existingAnswer = submission.SubmissionDetailFileList.Find(q => q.TaskFile.Id == taskFile.Id);
-                if (existingAnswer == null) // show task file only if no answer found
+                if (existingAnswer == null)
                 {
                     Console.WriteLine($"{number}. {taskFile.FileName} - ({taskFile.File.FileContent}.{taskFile.File.FileExtension})");
                 }
-                else // show task file + answer file if candidate already answer the task file
+                else
                 {
                     Console.WriteLine($"{number}. {taskFile.FileName} - ({taskFile.File.FileContent}.{taskFile.File.FileExtension}) --- Your answer: {existingAnswer.File.FileContent}.{existingAnswer.File.FileExtension}");
                 }
@@ -356,10 +347,10 @@ internal class StudentView
             Console.WriteLine(number + ". Back");
             var selectedOpt = Utils.GetNumberInputUtil(1, number, "Select question number to answer");
 
-            if (selectedOpt <= groupedQuestionList.Count) // if task question is selected (essay / pg)
+            if (selectedOpt <= questionList.Count)
             {
-                var selectedQuestion = groupedQuestionList[selectedOpt - 1];
-                var existingAnswer = submission.SubmissionDetailList.Find(q => q.Question.Id == selectedQuestion.Id);
+                var selectedQuestion = questionList[selectedOpt - 1];
+                var existingAnswer = submission.SubmissionDetailQuestionList.Find(q => q.QuestionId == selectedQuestion.Id);
                 if (selectedQuestion.QuestionType == QuestionType.MultipleChoice)
                 {
                     var optionNumber = 1;
@@ -374,15 +365,15 @@ internal class StudentView
                     {
                         var answer = new SubmissionDetailQuestion()
                         {
-                            Question = selectedQuestion,
+                            QuestionId = selectedQuestion.Id,
                             ChoiceOption = selectedQuestion.OptionList[selectedChoice - 1],
-                            Submission = new Submission(),
-                            CreatedBy = _studentUser.Id,
+                            ChoiceOptionId = selectedQuestion.OptionList[selectedChoice - 1].Id,
                         };
-                        submission.SubmissionDetailList.Add(answer);
+                        submission.SubmissionDetailQuestionList.Add(answer);
                     }
                     else
                     {
+                        existingAnswer.ChoiceOptionId = selectedQuestion.OptionList[selectedChoice - 1].Id;
                         existingAnswer.ChoiceOption = selectedQuestion.OptionList[selectedChoice - 1];
                     }
                 }
@@ -393,12 +384,10 @@ internal class StudentView
                     {
                         var answer = new SubmissionDetailQuestion()
                         {
-                            Question = selectedQuestion,
+                            QuestionId = selectedQuestion.Id,
                             EssayAnswerContent = essayAnswer,
-                            Submission = new Submission(),
-                            CreatedBy = _studentUser.Id,
                         };
-                        submission.SubmissionDetailList.Add(answer);
+                        submission.SubmissionDetailQuestionList.Add(answer);
                     }
                     else
                     {
@@ -406,16 +395,15 @@ internal class StudentView
                     }
                 }
             }
-            else if (selectedOpt > groupedQuestionList.Count && selectedOpt < number - 1) // if task file is selected
+            else if (selectedOpt > questionList.Count && selectedOpt < number - 1)
             {
-                var numberOfFile = Utils.GetNumberInputUtil(1, 5, "How many file you want to submit");
-                submission.SubmissionDetailFileList.Clear();
-                var selectedTaskFile = task.TaskFileList[selectedOpt - groupedQuestionList.Count - 1];
-                for (var i = 0; i < numberOfFile; i++)
+                var selectedTaskFile = task.TaskFileList[selectedOpt - questionList.Count - 1];
+                var existingAnswer = submission.SubmissionDetailFileList.Find(tf => tf.TaskFile.Id == selectedTaskFile.Id);
+
+                var filename = Utils.GetStringInputUtil("Filename");
+                var extension = Utils.GetStringInputUtil("Extension");
+                if (existingAnswer == null)
                 {
-                    Console.WriteLine("File submission no " + (i + 1));
-                    var filename = Utils.GetStringInputUtil("Filename");
-                    var extension = Utils.GetStringInputUtil("Extension");
                     var answer = new SubmissionDetailFile()
                     {
                         TaskFile = selectedTaskFile,
@@ -423,12 +411,17 @@ internal class StudentView
                         {
                             FileContent = filename,
                             FileExtension = extension,
-                            CreatedBy = _studentUser.Id,
                         },
-                        Submission = new Submission(),
-                        CreatedBy = _studentUser.Id,
                     };
                     submission.SubmissionDetailFileList.Add(answer);
+                }
+                else
+                {
+                    existingAnswer.File = new LMSFile()
+                    {
+                        FileContent = filename,
+                        FileExtension = extension,
+                    };
                 }
             }
             else if (selectedOpt == number - 1)

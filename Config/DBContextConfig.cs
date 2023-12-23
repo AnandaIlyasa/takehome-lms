@@ -19,7 +19,7 @@ internal class DBContextConfig : DbContext
     public DbSet<SessionMaterialFile> SessionMaterialFiles { get; set; }
     public DbSet<StudentClass> StudentClasses { get; set; }
     public DbSet<Submission> Submissions { get; set; }
-    public DbSet<SubmissionDetailQuestion> SubmissionDetails { get; set; }
+    public DbSet<SubmissionDetailQuestion> SubmissionDetailQuestions { get; set; }
     public DbSet<SubmissionDetailFile> SubmissionDetailFiles { get; set; }
     public DbSet<TaskDetail> TaskDetails { get; set; }
     public DbSet<TaskFile> TaskFiles { get; set; }

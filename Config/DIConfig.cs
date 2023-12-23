@@ -28,7 +28,7 @@ internal class DIConfig
         builder.Services.AddSingleton<ISessionMaterialRepo, SessionMaterialRepo>();
         builder.Services.AddSingleton<ISessionTaskRepo, SessionTaskRepo>();
         builder.Services.AddSingleton<ISubmissionRepo, SubmissionRepo>();
-        builder.Services.AddSingleton<ISubmissionDetailRepo, SubmissionDetailRepo>();
+        builder.Services.AddSingleton<ISubmissionDetailQuestionRepo, SubmissionDetailQuestionRepo>();
         builder.Services.AddSingleton<ISubmissionDetailFileRepo, SubmissionDetailFileRepo>();
         builder.Services.AddSingleton<ILMSFileRepo, LMSFileRepo>();
         builder.Services.AddSingleton<IStudentClassRepo, StudentClassRepo>();

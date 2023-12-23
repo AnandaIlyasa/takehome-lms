@@ -7,7 +7,6 @@ namespace Lms.Repo;
 
 internal class SessionMaterialRepo : ISessionMaterialRepo
 {
-    public DatabaseHelper DBHelper { private get; init; }
     readonly DBContextConfig _context;
 
     public SessionMaterialRepo(DBContextConfig context)

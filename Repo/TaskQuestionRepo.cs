@@ -17,17 +17,16 @@ internal class TaskQuestionRepo : ITaskQuestionRepo
     public List<TaskQuestion> GetQuestionListByTask(int taskId)
     {
         var questionList = _context.TaskQuestions
-                            .FromSql($@"
-                                SELECT
-	                                q.*,
-                                    q.xmin
-                                FROM
-	                                t_m_task_question q 
-                                INNER JOIN
-	                                t_r_task_detail td ON q.id = td.task_question_id 
-                                WHERE 
-	                                td.task_id = {taskId}
-                            ")
+                            .Join(
+                                _context.TaskDetails,
+                                q => q.Id,
+                                td => td.TaskQuestionId,
+                                (q, td) => new { q, td }
+                            )
+                            .Where(qtd => qtd.td.TaskId == taskId)
+                            .Select(qtd => qtd.q)
+                            .GroupBy(q => q.Id)
+                            .Select(q => q.First())
                             .ToList();
         return questionList;
     }

@@ -89,9 +89,15 @@ internal class SessionService : ISessionService
                 if (question.QuestionType == QuestionType.MultipleChoice)
                 {
                     var optionList = _multipleChoiceOptionRepo.GetMultipleChoiceOptionListByQuestion(question.Id);
+                    optionList = optionList
+                                .OrderBy(o => o.OptionChar)
+                                .ToList();
                     question.OptionList = optionList;
                 }
             }
+            task.TaskQuestionList = task.TaskQuestionList
+                                    .OrderByDescending(q => q.QuestionType)
+                                    .ToList();
 
             var taskFileList = _taskFileRepo.GetTaskFileListTask(task.Id);
             task.TaskFileList = taskFileList;

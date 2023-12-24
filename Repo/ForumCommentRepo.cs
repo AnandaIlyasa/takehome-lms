@@ -1,6 +1,7 @@
 ﻿using Lms.Config;
 using Lms.IRepo;
 using Lms.Model;
+using Microsoft.EntityFrameworkCore;
 
 namespace Lms.Repo;
 
@@ -25,6 +26,7 @@ internal class ForumCommentRepo : IForumCommentRepo
         var commentList = _context.ForumComments
                         .Where(fc => fc.ForumId == forumId)
                         .OrderBy(fc => fc.CreatedAt)
+                        .Include(fc => fc.User)
                         .ToList();
         return commentList;
     }

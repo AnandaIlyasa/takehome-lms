@@ -1,5 +1,6 @@
 ﻿namespace Lms.View;
 
+using Lms.Constant;
 using Lms.IService;
 using Lms.Model;
 using Lms.Utils;
@@ -278,13 +279,12 @@ internal class TeacherView : StudentTeacherBaseView
             }
             else
             {
-                ShowTaskDetail(taskList[selectedOpt - 1]);
+                ShowTaskSubmissionList(taskList[selectedOpt - 1]);
             }
         }
     }
 
-    // TODO : create scoring & review feature
-    void ShowTaskDetail(LMSTask task)
+    void ShowTaskSubmissionList(LMSTask task)
     {
         while (true)
         {
@@ -293,16 +293,135 @@ internal class TeacherView : StudentTeacherBaseView
             var number = 1;
             foreach (var submission in submissionList)
             {
-                Console.WriteLine($"{number}. {submission.Student.FullName} - ({submission.CreatedAt.ToString(DateFormat)})");
+                if (submission.UpdatedAt.HasValue)
+                {
+                    Console.WriteLine($"{number}. {submission.Student.FullName} - ({submission.CreatedAt.ToString(DateTimeFormat)}) - REVIEWED");
+                }
+                else
+                {
+                    Console.WriteLine($"{number}. {submission.Student.FullName} - ({submission.CreatedAt.ToString(DateTimeFormat)})");
+                }
                 number++;
             }
             Console.WriteLine(number + ". Back");
             var selectedOpt = Utils.GetNumberInputUtil(1, number);
 
-            if (selectedOpt == 3)
+            if (selectedOpt == number)
             {
                 break;
             }
+            else
+            {
+                ShowSubmissionDetail(task, submissionList[selectedOpt - 1]);
+            }
+        }
+    }
+
+    void ShowSubmissionDetail(LMSTask task, Submission submission)
+    {
+        var nMultipleChoice = 0;
+        var nMultipleChoiceCorrect = 0;
+        foreach (var question in task.TaskQuestionList) if (question.QuestionType == QuestionType.MultipleChoice) nMultipleChoice++;
+        foreach (var answer in submission.SubmissionDetailQuestionList) if (answer.ChoiceOption != null && answer.ChoiceOption.IsCorrect) nMultipleChoiceCorrect++;
+        var multipleChoiceScore = (double)((double)nMultipleChoiceCorrect / nMultipleChoice) * 100.0d;
+        if (submission.UpdatedAt.HasValue == false) submission.Grade = multipleChoiceScore;
+
+        ShowSubmissionInformation(task, submission, (double)submission.Grade);
+
+        Console.WriteLine("\n1. Insert Score and Notes");
+        Console.WriteLine("2. Back");
+        var selectedOpt = Utils.GetNumberInputUtil(1, 2);
+
+        if (selectedOpt == 1)
+        {
+            if (submission.UpdatedAt.HasValue)
+            {
+                Console.WriteLine("\nYou have reviewed " + submission.Student.FullName + "'s submission before");
+                return;
+            }
+
+            Console.Write("Score: ");
+            var score = Convert.ToDouble(Console.ReadLine());
+            var notes = Utils.GetStringInputUtil("Notes");
+
+            if (submission.UpdatedAt.HasValue == false)
+            {
+                submission.Grade = (multipleChoiceScore + score) / 2;
+                submission.TeacherNotes = notes;
+            }
+
+            _taskSubmissionService.InsertScoreAndNotes(submission);
+            submission = _taskSubmissionService.GetStudentSubmissionByTask(submission.StudentId, submission.TaskId);
+
+            Console.WriteLine("\nScore and Notes successfully submitted");
+
+            ShowSubmissionInformation(task, submission, (double)submission.Grade);
+        }
+        else
+        {
+            return;
+        }
+    }
+
+    void ShowSubmissionInformation(LMSTask task, Submission submission, double multipleChoiceScore)
+    {
+        Console.WriteLine($"\n{submission.Student.FullName} {task.TaskName} Submission");
+        Console.WriteLine("Submitted: " + submission.CreatedAt.ToString(DateTimeFormat));
+        if (submission.UpdatedAt.HasValue)
+        {
+            Console.WriteLine("Score: " + multipleChoiceScore);
+        }
+        else
+        {
+            Console.WriteLine("Multiple Choice Score: " + multipleChoiceScore);
+        }
+        Console.WriteLine("Notes: " + submission.TeacherNotes);
+
+        ShowStudentAnswerList(task, submission);
+    }
+
+    void ShowStudentAnswerList(LMSTask task, Submission submission)
+    {
+        Console.WriteLine("\n" + submission.Student.FullName + " answer list:");
+        var number = 1;
+        foreach (var taskQuestion in task.TaskQuestionList)
+        {
+            var existingAnswer = submission.SubmissionDetailQuestionList.Find(q => q.QuestionId == taskQuestion.Id);
+            string? answer = null;
+            if (existingAnswer?.EssayAnswerContent is string) answer = existingAnswer.EssayAnswerContent;
+            else if (existingAnswer?.ChoiceOption != null) answer = $"({existingAnswer?.ChoiceOption?.OptionChar}) {existingAnswer?.ChoiceOption?.OptionText}";
+
+            if (answer == null)
+            {
+                Console.WriteLine($"{number}. {taskQuestion.QuestionContent}");
+            }
+            else
+            {
+                Console.WriteLine($"{number}. {taskQuestion.QuestionContent} --- Your answer: {answer}");
+            }
+
+            if (taskQuestion.QuestionType == QuestionType.MultipleChoice)
+            {
+                foreach (var option in taskQuestion.OptionList)
+                {
+                    Console.WriteLine($"   {option.OptionChar}) {option.OptionText}");
+                }
+            }
+            number++;
+        }
+
+        foreach (var taskFile in task.TaskFileList)
+        {
+            var existingAnswer = submission.SubmissionDetailFileList.Find(q => q.TaskFileId == taskFile.Id);
+            if (existingAnswer == null)
+            {
+                Console.WriteLine($"{number}. {taskFile.FileName} - ({taskFile.File.FileContent}.{taskFile.File.FileExtension})");
+            }
+            else
+            {
+                Console.WriteLine($"{number}. {taskFile.FileName} - ({taskFile.File.FileContent}.{taskFile.File.FileExtension}) --- Your answer: {existingAnswer.File.FileContent}.{existingAnswer.File.FileExtension}");
+            }
+            number++;
         }
     }
 }

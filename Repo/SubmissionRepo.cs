@@ -1,6 +1,7 @@
 ﻿using Lms.Config;
 using Lms.IRepo;
 using Lms.Model;
+using Microsoft.EntityFrameworkCore;
 
 namespace Lms.Repo;
 
@@ -17,6 +18,14 @@ internal class SubmissionRepo : ISubmissionRepo
     {
         _context.Submissions.Add(submission);
         _context.SaveChanges();
+        return submission;
+    }
+
+    public Submission GetStudentSubmissionByTask(int studentId, int taskId)
+    {
+        var submission = _context.Submissions
+                        .Where(s => s.StudentId == studentId && s.TaskId == taskId)
+                        .First();
         return submission;
     }
 
@@ -44,7 +53,19 @@ internal class SubmissionRepo : ISubmissionRepo
             orderby s.CreatedAt
             select s;
 
-        var submissionList = query.ToList();
+        var submissionList = query
+                            .Include(s => s.Student)
+                            .ToList();
         return submissionList;
+    }
+
+    public int UpdateSubmissionGradeAndNotes(Submission submission)
+    {
+        var foundSubmission = _context.Submissions
+                            .Where(s => s.Id == submission.Id)
+                            .First();
+        foundSubmission.Grade = submission.Grade;
+        foundSubmission.TeacherNotes = submission.TeacherNotes;
+        return _context.SaveChanges();
     }
 }

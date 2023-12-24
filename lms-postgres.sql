@@ -294,6 +294,7 @@ CREATE TABLE t_r_submission_detail_file (
 	id SERIAL,
     submission_id INT NOT NULL,
     file_id INT NOT NULL,
+	task_file_id INT NOT NULL,
 	created_by INT NOT NULL,
 	created_at TIMESTAMP NOT NULL,
 	updated_at TIMESTAMP,
@@ -302,6 +303,7 @@ CREATE TABLE t_r_submission_detail_file (
     CONSTRAINT submission_file_pk PRIMARY KEY(id),
 	CONSTRAINT submission_file_ck UNIQUE(submission_id, file_id),
     CONSTRAINT submission_id_fk FOREIGN KEY(submission_id) REFERENCES t_r_submission(id),
+	CONSTRAINT submission_detail_file_fk FOREIGN KEY(task_file_id) REFERENCES t_r_task_file(id),
     CONSTRAINT submission_file_fk FOREIGN KEY(file_id) REFERENCES t_m_file(id)
 );
 

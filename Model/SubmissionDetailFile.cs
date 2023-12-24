@@ -19,6 +19,9 @@ internal class SubmissionDetailFile : BaseModel
     [ForeignKey(nameof(FileId))]
     public LMSFile File { get; set; }
 
-    [NotMapped]
-    public TaskFile TaskFile { get; set; } // not mapped
+    [Column("task_file_id")]
+    public int TaskFileId { get; set; }
+
+    [ForeignKey(nameof(TaskFileId))]
+    public TaskFile TaskFile { get; set; }
 }

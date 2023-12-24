@@ -1,6 +1,7 @@
 ﻿using Lms.Config;
 using Lms.IRepo;
 using Lms.Model;
+using Microsoft.EntityFrameworkCore;
 
 namespace Lms.Repo;
 
@@ -20,8 +21,19 @@ internal class SubmissionDetailQuestionRepo : ISubmissionDetailQuestionRepo
         return submissionDetailQuestion;
     }
 
-    public List<SubmissionDetailQuestion> GetStudentSubmissionDetailQuestionByTask(int taskId)
+    public List<SubmissionDetailQuestion> GetStudentSubmissionDetailQuestionByTask(int taskId, int studentId)
     {
-        throw new NotImplementedException();
+        var submissionQuestionList = _context.SubmissionDetailQuestions
+                                    .Join(
+                                        _context.Submissions,
+                                        sdq => sdq.SubmissionId,
+                                        s => s.Id,
+                                        (sdq, s) => new { sdq, s }
+                                    )
+                                    .Where(sdqs => sdqs.s.TaskId == taskId && sdqs.s.StudentId == studentId)
+                                    .Select(sdqs => sdqs.sdq)
+                                    .Include(sdq => sdq.ChoiceOption)
+                                    .ToList();
+        return submissionQuestionList;
     }
 }

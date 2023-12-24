@@ -9,7 +9,7 @@ namespace Lms.Service;
 internal class TaskSubmissionService : ITaskSubmissionService
 {
     readonly ISubmissionRepo _submissionRepo;
-    readonly ISubmissionDetailQuestionRepo _submissionDetailRepo;
+    readonly ISubmissionDetailQuestionRepo _submissionDetailQuestionRepo;
     readonly ISubmissionDetailFileRepo _submissionDetailFileRepo;
     readonly ILMSFileRepo _fileRepo;
     readonly SessionHelper _sessionHelper;
@@ -24,10 +24,23 @@ internal class TaskSubmissionService : ITaskSubmissionService
     )
     {
         _submissionRepo = submissionRepo;
-        _submissionDetailRepo = submissionDetailRepo;
+        _submissionDetailQuestionRepo = submissionDetailRepo;
         _submissionDetailFileRepo = submissionDetailFileRepo;
         _fileRepo = fileRepo;
         _sessionHelper = sessionHelper;
+    }
+
+    public Submission GetStudentSubmissionByTask(int studentId, int taskId)
+    {
+        var submission = _submissionRepo.GetStudentSubmissionByTask(studentId, taskId);
+
+        var submissionQuestionList = _submissionDetailQuestionRepo.GetStudentSubmissionDetailQuestionByTask(taskId, studentId);
+        submission.SubmissionDetailQuestionList = submissionQuestionList;
+
+        var submissionFileList = _submissionDetailFileRepo.GetStudentSubmissionDetailFileByTask(taskId, studentId);
+        submission.SubmissionDetailFileList = submissionFileList;
+
+        return submission;
     }
 
     public List<Submission> GetStudentSubmissionListBySession(int sessionId)
@@ -39,7 +52,27 @@ internal class TaskSubmissionService : ITaskSubmissionService
     public List<Submission> GetSubmissionListBySession(int sessionId)
     {
         var submissionList = _submissionRepo.GetSubmissionListBySession(sessionId);
+
+        foreach (var submission in submissionList)
+        {
+            var submissionQuestionList = _submissionDetailQuestionRepo.GetStudentSubmissionDetailQuestionByTask(submission.TaskId, submission.StudentId);
+            submission.SubmissionDetailQuestionList = submissionQuestionList;
+        }
+
+        foreach (var submission in submissionList)
+        {
+            var submissionFileList = _submissionDetailFileRepo.GetStudentSubmissionDetailFileByTask(submission.TaskId, submission.StudentId);
+            submission.SubmissionDetailFileList = submissionFileList;
+        }
+
         return submissionList;
+    }
+
+    public void InsertScoreAndNotes(Submission submission)
+    {
+        submission.UpdatedAt = DateTime.Now;
+        submission.UpdatedBy = _sessionHelper.UserId;
+        _submissionRepo.UpdateSubmissionGradeAndNotes(submission);
     }
 
     public void SubmitTask(Submission submission)
@@ -58,7 +91,7 @@ internal class TaskSubmissionService : ITaskSubmissionService
                 questionSubmission.SubmissionId = insertedSubmission.Id;
                 questionSubmission.CreatedBy = _sessionHelper.UserId;
                 questionSubmission.CreatedAt = DateTime.Now;
-                _submissionDetailRepo.CreateNewSubmissionDetailQuestion(questionSubmission);
+                _submissionDetailQuestionRepo.CreateNewSubmissionDetailQuestion(questionSubmission);
             }
 
             foreach (var fileSubmission in submission.SubmissionDetailFileList)

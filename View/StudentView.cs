@@ -5,7 +5,7 @@ using Lms.IService;
 using Lms.Model;
 using Lms.Utils;
 
-internal class StudentView
+internal class StudentView : StudentTeacherBaseView
 {
     readonly IClassService _classService;
     readonly ISessionService _sessionService;
@@ -33,7 +33,7 @@ internal class StudentView
 
         while (true)
         {
-            Console.WriteLine("\n--- Student Page ---");
+            Console.WriteLine("\n--- Student Page - hello, " + user.FullName + " ----");
             Console.WriteLine("1. My Class List");
             Console.WriteLine("2. Enroll New Class");
             Console.WriteLine("3. Logout");
@@ -58,7 +58,7 @@ internal class StudentView
     {
         while (true)
         {
-            var classList = _classService.GetEnrolledClassList(_studentUser.Id);
+            var classList = _classService.GetEnrolledClassList();
 
             Console.WriteLine("\n--- My Class List ---");
             var number = 1;
@@ -85,7 +85,7 @@ internal class StudentView
     {
         while (true)
         {
-            var unEnrolledClassList = _classService.GetUnEnrolledClassList(_studentUser.Id);
+            var unEnrolledClassList = _classService.GetUnEnrolledClassList();
 
             Console.WriteLine("\n--- Available Class List ---");
 
@@ -105,12 +105,7 @@ internal class StudentView
             else
             {
                 var selectedClass = unEnrolledClassList[selectedOpt - 1];
-                var studentClass = new StudentClass()
-                {
-                    Student = _studentUser,
-                    Class = selectedClass,
-                };
-                _classService.EnrollClass(studentClass);
+                _classService.EnrollClass(selectedClass.Id);
 
                 Console.WriteLine($"\nYou successfully enrolled in {selectedClass.ClassTitle} class");
             }
@@ -121,11 +116,11 @@ internal class StudentView
     {
         while (true)
         {
-            Console.WriteLine("\nJava Class Learning List");
+            Console.WriteLine("\nLearning List");
             var number = 1;
             foreach (var learning in learningList)
             {
-                Console.WriteLine($"{number}. {learning.LearningName} ({learning.LearningDate})");
+                Console.WriteLine($"{number}. {learning.LearningName} ({learning.LearningDate.ToString(DateFormat)})");
                 number++;
             }
             Console.WriteLine(number + ". Back");
@@ -146,7 +141,7 @@ internal class StudentView
     {
         while (true)
         {
-            Console.WriteLine("\nLearning-1 Session List");
+            Console.WriteLine("\nSession List");
             var number = 1;
             foreach (var session in sessionList)
             {
@@ -187,7 +182,7 @@ internal class StudentView
         }
         else
         {
-            var sessionDetail = _sessionService.GetSessionById(session.Id);
+            var sessionDetail = _sessionService.GetSessionAndContentsById(session.Id);
             while (true)
             {
                 Console.WriteLine($"\n{sessionDetail.SessionName} ({sessionDetail.StartTime} - {sessionDetail.EndTime})");
@@ -201,7 +196,7 @@ internal class StudentView
                     Console.WriteLine($"{number}. {material.MaterialName}");
                     number++;
                 }
-                var submissionList = _taskSubmissionService.GetSubmissionListBySession(sessionDetail.Id);
+                var submissionList = _taskSubmissionService.GetStudentSubmissionListBySession(sessionDetail.Id);
                 foreach (var task in sessionDetail.TaskList)
                 {
                     var submission = submissionList.Find(s => s.Task.Id == task.Id);
@@ -220,7 +215,7 @@ internal class StudentView
 
                 if (selectedOpt == 1)
                 {
-                    ForumCommentMenu(sessionDetail.Forum);
+                    base.ForumCommentMenu(sessionDetail.Forum, _forumService);
                 }
                 else if (selectedOpt <= sessionDetail.MaterialList.Count + 1)
                 {
@@ -246,38 +241,6 @@ internal class StudentView
                 {
                     break;
                 }
-            }
-        }
-    }
-
-    void ForumCommentMenu(Forum forum)
-    {
-        while (true)
-        {
-            Console.WriteLine("\n---- " + forum.ForumName + " ----");
-            var commentList = _forumService.GetForumCommentList(forum.Id);
-            foreach (var comment in commentList)
-            {
-                Console.WriteLine($"{comment.User.FullName} - {comment.CommentContent} ({comment.CreatedAt})");
-            }
-            Console.WriteLine("1. Post New Comment");
-            Console.WriteLine("2. Back");
-            var selectedOpt = Utils.GetNumberInputUtil(1, 2);
-
-            if (selectedOpt == 1)
-            {
-                var comment = Utils.GetStringInputUtil("Your comment");
-                var forumComment = new ForumComment()
-                {
-                    User = _studentUser,
-                    CommentContent = comment,
-                    Forum = forum,
-                };
-                _forumService.PostCommentToForum(forumComment);
-            }
-            else
-            {
-                break;
             }
         }
     }

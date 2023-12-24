@@ -62,7 +62,7 @@ internal class MainView
         }
         else if (user.Role.RoleCode == RoleCode.Teacher)
         {
-            _teacherView.MainMenu();
+            _teacherView.MainMenu(user);
         }
         else if (user.Role.RoleCode == RoleCode.Student)
         {

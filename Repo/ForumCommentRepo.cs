@@ -24,6 +24,7 @@ internal class ForumCommentRepo : IForumCommentRepo
     {
         var commentList = _context.ForumComments
                         .Where(fc => fc.ForumId == forumId)
+                        .OrderBy(fc => fc.CreatedAt)
                         .ToList();
         return commentList;
     }

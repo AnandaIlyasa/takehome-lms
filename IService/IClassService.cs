@@ -4,7 +4,8 @@ using Lms.Model;
 
 internal interface IClassService
 {
-    List<Class> GetEnrolledClassList(int studentId);
-    List<Class> GetUnEnrolledClassList(int studentId);
-    StudentClass EnrollClass(StudentClass studentClass);
+    List<Class> GetEnrolledClassList();
+    List<Class> GetClassListByTeacher();
+    List<Class> GetUnEnrolledClassList();
+    StudentClass EnrollClass(int classId);
 }

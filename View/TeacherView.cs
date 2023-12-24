@@ -1,88 +1,120 @@
 ﻿namespace Lms.View;
 
+using Lms.IService;
+using Lms.Model;
 using Lms.Utils;
+using System.Diagnostics;
 
-internal class TeacherView
+internal class TeacherView : StudentTeacherBaseView
 {
-    public void MainMenu()
+    readonly IClassService _classService;
+    readonly ISessionService _sessionService;
+    readonly IForumService _forumService;
+    readonly ITaskSubmissionService _taskSubmissionService;
+    User _teacherUser;
+
+    public TeacherView(IClassService classService, ISessionService sessionService, IForumService forumService, ITaskSubmissionService taskSubmissionService)
     {
+        _classService = classService;
+        _sessionService = sessionService;
+        _forumService = forumService;
+        _taskSubmissionService = taskSubmissionService;
+    }
+
+    public void MainMenu(User user)
+    {
+        _teacherUser = user;
+
         while (true)
         {
-            Console.WriteLine("\n--- Teacher Page ---");
-            Console.WriteLine("1. Java Class");
-            Console.WriteLine("2. C# Class");
-            Console.WriteLine("3. Logout");
-            var selectedOpt = Utils.GetNumberInputUtil(1, 3, "Select Class");
-
-            if (selectedOpt == 1)
+            Console.WriteLine("\n--- Teacher Page - hello, " + _teacherUser.FullName + " ----");
+            var classList = _classService.GetClassListByTeacher();
+            var number = 1;
+            foreach (var cl in classList)
             {
-                ShowClassLearningList();
+                Console.WriteLine($"{number}. {cl.ClassTitle}");
+                number++;
+            }
+
+            Console.WriteLine(number + ". Logout");
+            var selectedOpt = Utils.GetNumberInputUtil(1, number, "Select Class");
+
+            if (selectedOpt == number)
+            {
+                break;
             }
             else
             {
-                break;
+                ShowClassLearningList(classList[selectedOpt - 1]);
             }
         }
     }
 
-    void ShowClassLearningList()
+    void ShowClassLearningList(Class selectedClass)
     {
         while (true)
         {
-            Console.WriteLine("\nJava Class Learning List");
-            Console.WriteLine("1. Learning-1 (2023-12-01)");
-            Console.WriteLine("2. Learning-2 (2023-12-02)");
-            Console.WriteLine("3. Create New Learning");
-            Console.WriteLine("4. Back");
-            var selectedOpt = Utils.GetNumberInputUtil(1, 4, "Select Learning");
-
-            if (selectedOpt == 1)
+            Console.WriteLine("\n" + selectedClass.ClassTitle + " Class Learning List");
+            var number = 1;
+            foreach (var learning in selectedClass.LearningList)
             {
-                LearningMenu();
+                Console.WriteLine($"{number}. {learning.LearningName} ({learning.LearningDate.ToString(DateFormat)})");
+                number++;
             }
-            else if (selectedOpt == 3)
+            Console.WriteLine(number++ + ". Create New Learning");
+            Console.WriteLine(number + ". Back");
+            var selectedOpt = Utils.GetNumberInputUtil(1, number, "Select Learning");
+
+            if (selectedOpt == number)
+            {
+                break;
+            }
+            else if (selectedOpt == number - 1)
             {
                 CreateNewLearning();
             }
             else
             {
-                break;
+                LearningMenu(selectedClass.LearningList[selectedOpt - 1]);
             }
         }
     }
 
     void CreateNewLearning()
     {
-        var dateFormat = "yyyy-MM-dd";
         var learningTitle = Utils.GetStringInputUtil("Learning Title");
         var learningDescription = Utils.GetStringInputUtil("Learning Description");
-        var learningDate = Utils.GetDateTimeInputUtil("Learning Date", dateFormat);
+        var learningDate = Utils.GetDateTimeInputUtil("Learning Date", DateFormat);
 
-        Console.WriteLine($"\nNew learning {learningTitle} on {learningDate.ToString(dateFormat)} successfully created");
+        Console.WriteLine($"\nNew learning {learningTitle} on {learningDate.ToString(DateFormat)} successfully created");
     }
 
-    void LearningMenu()
+    void LearningMenu(Learning learning)
     {
         while (true)
         {
-            Console.WriteLine("\nLearning-1 Session List");
-            Console.WriteLine("1. Session-1 (11:00 - 11:00)");
-            Console.WriteLine("2. Session-2 (12:00 - 12:00)");
-            Console.WriteLine("3. Create New Session");
-            Console.WriteLine("4. Back");
-            var selectedOpt = Utils.GetNumberInputUtil(1, 4, "Select Session");
-
-            if (selectedOpt == 1)
+            Console.WriteLine($"\n{learning.LearningName} ({learning.LearningDate.ToString(DateFormat)}) Session List");
+            var number = 1;
+            foreach (var session in learning.SessionList)
             {
-                SessionMenu();
+                Console.WriteLine($"{number}. {session.SessionName} ({session.StartTime} - {session.EndTime})");
+                number++;
             }
-            else if (selectedOpt == 3)
+            Console.WriteLine(number++ + ". Create New Session");
+            Console.WriteLine(number + ". Back");
+            var selectedOpt = Utils.GetNumberInputUtil(1, number, "Select Session");
+
+            if (selectedOpt == number)
+            {
+                break;
+            }
+            else if (selectedOpt == number - 1)
             {
                 CreateNewSession();
             }
             else
             {
-                break;
+                SessionMenu(learning.SessionList[selectedOpt - 1]);
             }
         }
     }
@@ -98,28 +130,36 @@ internal class TeacherView
         Console.WriteLine($"\nNew session {sessionTitle} ({sessionStart.ToString(timeFormat)} - {sessionEnd.ToString(timeFormat)}) successfully created");
     }
 
-    void SessionMenu()
+    void SessionMenu(Session session)
     {
         while (true)
         {
-            Console.WriteLine("\nSession-1 Menu");
-            Console.WriteLine("1. Material");
-            Console.WriteLine("2. Task");
-            Console.WriteLine("3. Attendance List");
-            Console.WriteLine("4. Back");
-            var selectedOpt = Utils.GetNumberInputUtil(1, 4);
+            var sessionDetail = _sessionService.GetSessionAndContentsById(session.Id);
+            Console.WriteLine($"\n{sessionDetail.SessionName} ({sessionDetail.StartTime} - {sessionDetail.EndTime})");
+            Console.WriteLine("Description : " + sessionDetail.SessionDescription + "\n");
+
+            Console.WriteLine("1. Attendance List");
+            Console.WriteLine("2. Forum");
+            Console.WriteLine("3. Material");
+            Console.WriteLine("4. Task");
+            Console.WriteLine("5. Back");
+            var selectedOpt = Utils.GetNumberInputUtil(1, 5);
 
             if (selectedOpt == 1)
             {
-                MaterialMenu();
+                ShowAttendanceList(sessionDetail);
             }
             else if (selectedOpt == 2)
             {
-                TaskMenu();
+                base.ForumCommentMenu(session.Forum, _forumService);
             }
             else if (selectedOpt == 3)
             {
-                ShowAttendanceList();
+                MaterialMenu(sessionDetail.MaterialList);
+            }
+            else if (selectedOpt == 4)
+            {
+                TaskMenu(sessionDetail.TaskList);
             }
             else
             {
@@ -128,17 +168,50 @@ internal class TeacherView
         }
     }
 
-    void MaterialMenu()
+    void ShowAttendanceList(Session session)
     {
         while (true)
         {
-            Console.WriteLine("\nSession-1 Material");
-            Console.WriteLine("1. Material-1");
-            Console.WriteLine("2. Add Material");
-            Console.WriteLine("3. Back");
-            var selectedOpt = Utils.GetNumberInputUtil(1, 3);
+            var attendanceList = _sessionService.GetSessionAttendanceList(session.Id);
+            Console.WriteLine("\nAttendance List :");
+            var number = 1;
+            foreach (var attendance in attendanceList)
+            {
+                var approvalStatus = attendance.IsApproved ? "Approved" : "Not Approved";
+                Console.WriteLine($"{number}. {attendance.Student.FullName} ({approvalStatus} - {attendance.CreatedAt.ToString(DateFormat)})");
+                number++;
+            }
+            Console.WriteLine(number + ". Back");
+            var selectedOpt = Utils.GetNumberInputUtil(1, number, "Select Student to Update Approval Status");
 
-            if (selectedOpt == 2)
+            if (selectedOpt == number)
+            {
+                break;
+            }
+            else
+            {
+                _sessionService.UpdateAttendanceApprovalStatus(attendanceList[selectedOpt - 1]);
+                Console.WriteLine("\nAttendance status successfully updated");
+            }
+        }
+    }
+
+    void MaterialMenu(List<SessionMaterial> materialList)
+    {
+        while (true)
+        {
+            Console.WriteLine("\nMaterial List");
+            var number = 1;
+            foreach (var material in materialList)
+            {
+                Console.WriteLine($"{number}. {material.MaterialName}");
+                number++;
+            }
+            Console.WriteLine(number++ + ". Create New Material");
+            Console.WriteLine(number + ". Back");
+            var selectedOpt = Utils.GetNumberInputUtil(1, number);
+
+            if (selectedOpt == number - 1)
             {
                 Console.WriteLine("\nSelect Material Type");
                 Console.WriteLine("1. File");
@@ -162,21 +235,26 @@ internal class TeacherView
         }
     }
 
-    void TaskMenu()
+    void TaskMenu(List<LMSTask> taskList)
     {
         while (true)
         {
-            Console.WriteLine("\nSession-1 Task");
-            Console.WriteLine("1. Task-1");
-            Console.WriteLine("2. Add Task");
-            Console.WriteLine("3. Back");
-            var selectedOpt = Utils.GetNumberInputUtil(1, 3);
-
-            if (selectedOpt == 1)
+            Console.WriteLine("\nTask List");
+            var number = 1;
+            foreach (var task in taskList)
             {
-                ShowTaskDetail();
+                Console.WriteLine($"{number}. {task.TaskName} - (Duration: {task.Duration} minutes)");
+                number++;
             }
-            else if (selectedOpt == 2)
+            Console.WriteLine(number++ + ". Create New Task");
+            Console.WriteLine(number + ". Back");
+            var selectedOpt = Utils.GetNumberInputUtil(1, number);
+
+            if (selectedOpt == number)
+            {
+                break;
+            }
+            else if (selectedOpt == number - 1)
             {
                 Console.WriteLine("\nSelect Task Type");
                 Console.WriteLine("1. File");
@@ -200,47 +278,30 @@ internal class TeacherView
             }
             else
             {
-                break;
+                ShowTaskDetail(taskList[selectedOpt - 1]);
             }
         }
     }
 
-    void ShowTaskDetail()
+    // TODO : create scoring & review feature
+    void ShowTaskDetail(LMSTask task)
     {
         while (true)
         {
-            Console.WriteLine("\nTask-1 Detail");
-            Console.WriteLine("Jelaskan 5 prinsip SOLID");
-            Console.WriteLine("Submission List:");
-            Console.WriteLine("1. Andi (2023-12-12 10:10)");
-            Console.WriteLine("2. Budi (2023-12-12 10:10)");
-            Console.WriteLine("3. Back");
-            var selectedOpt = Utils.GetNumberInputUtil(1, 3);
+            var submissionList = _taskSubmissionService.GetSubmissionListBySession(task.SessionId);
+            Console.WriteLine("\n" + task.TaskName + " Submission List");
+            var number = 1;
+            foreach (var submission in submissionList)
+            {
+                Console.WriteLine($"{number}. {submission.Student.FullName} - ({submission.CreatedAt.ToString(DateFormat)})");
+                number++;
+            }
+            Console.WriteLine(number + ". Back");
+            var selectedOpt = Utils.GetNumberInputUtil(1, number);
 
             if (selectedOpt == 3)
             {
                 break;
-            }
-        }
-    }
-
-    void ShowAttendanceList()
-    {
-        while (true)
-        {
-            Console.WriteLine("\nAttendance List :");
-            Console.WriteLine("1. Andi (Approved)");
-            Console.WriteLine("2. Budi (Need Approval)");
-            Console.WriteLine("3. Back");
-            var selectedOpt = Utils.GetNumberInputUtil(1, 3, "Select Student to Approve");
-
-            if (selectedOpt == 3)
-            {
-                break;
-            }
-            else
-            {
-                Console.WriteLine("\nYou have approved Budi");
             }
         }
     }

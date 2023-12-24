@@ -30,6 +30,12 @@ internal class TaskSubmissionService : ITaskSubmissionService
         _sessionHelper = sessionHelper;
     }
 
+    public List<Submission> GetStudentSubmissionListBySession(int sessionId)
+    {
+        var submissionList = _submissionRepo.GetStudentSubmissionListBySession(sessionId, _sessionHelper.UserId);
+        return submissionList;
+    }
+
     public List<Submission> GetSubmissionListBySession(int sessionId)
     {
         var submissionList = _submissionRepo.GetSubmissionListBySession(sessionId);
@@ -40,46 +46,35 @@ internal class TaskSubmissionService : ITaskSubmissionService
     {
         using (var context = new DBContextConfig())
         {
-            using (var trx = context.Database.BeginTransaction())
+            var trx = context.Database.BeginTransaction();
+
+            submission.StudentId = _sessionHelper.UserId;
+            submission.CreatedBy = _sessionHelper.UserId;
+            submission.CreatedAt = DateTime.Now;
+            var insertedSubmission = _submissionRepo.CreateNewSubmission(submission);
+
+            foreach (var questionSubmission in submission.SubmissionDetailQuestionList)
             {
-                try
-                {
-                    submission.StudentId = _sessionHelper.UserId;
-                    submission.CreatedBy = _sessionHelper.UserId;
-                    submission.CreatedAt = DateTime.Now;
-                    var insertedSubmission = _submissionRepo.CreateNewSubmission(submission);
-
-                    foreach (var questionSubmission in submission.SubmissionDetailQuestionList)
-                    {
-                        questionSubmission.SubmissionId = insertedSubmission.Id;
-                        questionSubmission.CreatedBy = _sessionHelper.UserId;
-                        questionSubmission.CreatedAt = DateTime.Now;
-                        _submissionDetailRepo.CreateNewSubmissionDetailQuestion(questionSubmission);
-                    }
-
-                    foreach (var fileSubmission in submission.SubmissionDetailFileList)
-                    {
-                        fileSubmission.File.CreatedBy = _sessionHelper.UserId;
-                        fileSubmission.File.CreatedAt = DateTime.Now;
-                        fileSubmission.File.FileExtension = "qwerqwerqwer";
-                        var insertedFile = _fileRepo.CreateNewFile(fileSubmission.File);
-
-                        fileSubmission.FileId = insertedFile.Id;
-                        fileSubmission.SubmissionId = insertedSubmission.Id;
-                        fileSubmission.CreatedBy = _sessionHelper.UserId;
-                        fileSubmission.CreatedAt = DateTime.Now;
-                        _submissionDetailFileRepo.CreateNewSubmissionDetailFile(fileSubmission);
-                    }
-
-                    trx.Commit();
-                }
-                catch (Exception ex)
-                {
-                    trx.Rollback();
-                    Console.WriteLine("error occured: " + ex.Message);
-                }
+                questionSubmission.SubmissionId = insertedSubmission.Id;
+                questionSubmission.CreatedBy = _sessionHelper.UserId;
+                questionSubmission.CreatedAt = DateTime.Now;
+                _submissionDetailRepo.CreateNewSubmissionDetailQuestion(questionSubmission);
             }
 
+            foreach (var fileSubmission in submission.SubmissionDetailFileList)
+            {
+                fileSubmission.File.CreatedBy = _sessionHelper.UserId;
+                fileSubmission.File.CreatedAt = DateTime.Now;
+                var insertedFile = _fileRepo.CreateNewFile(fileSubmission.File);
+
+                fileSubmission.FileId = insertedFile.Id;
+                fileSubmission.SubmissionId = insertedSubmission.Id;
+                fileSubmission.CreatedBy = _sessionHelper.UserId;
+                fileSubmission.CreatedAt = DateTime.Now;
+                _submissionDetailFileRepo.CreateNewSubmissionDetailFile(fileSubmission);
+            }
+
+            trx.Commit();
         }
     }
 }

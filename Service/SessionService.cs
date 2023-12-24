@@ -13,13 +13,13 @@ internal class SessionService : ISessionService
     readonly ISessionRepo _sessionRepo;
     readonly ISessionMaterialRepo _sessionMaterialRepo;
     readonly ISessionTaskRepo _sessionTaskRepo;
-    readonly SessionHelper _sessionHelper;
     readonly ISessionMaterialFileRepo _sessionMaterialFileRepo;
     readonly ITaskQuestionRepo _questionRepo;
     readonly ITaskMultipleChoiceOptionRepo _multipleChoiceOptionRepo;
     readonly IForumRepo _forumRepo;
     readonly IForumCommentRepo _forumCommentRepo;
     readonly ITaskFileRepo _taskFileRepo;
+    readonly SessionHelper _sessionHelper;
 
     public SessionService
     (
@@ -27,26 +27,26 @@ internal class SessionService : ISessionService
         ISessionRepo sessionRepo,
         ISessionMaterialRepo sessionMaterialRepo,
         ISessionTaskRepo sessionTaskRepo,
-        SessionHelper sessionHelper,
         ISessionMaterialFileRepo sessionMaterialFileRepo,
         ITaskQuestionRepo taskQuestionRepo,
         ITaskMultipleChoiceOptionRepo taskMultipleChoiceOptionRepo,
         IForumRepo forumRepo,
         IForumCommentRepo forumCommentRepo,
-        ITaskFileRepo taskFileRepo
+        ITaskFileRepo taskFileRepo,
+        SessionHelper sessionHelper
     )
     {
         _sessionAttendanceRepo = sessionAttendanceRepo;
         _sessionRepo = sessionRepo;
         _sessionMaterialRepo = sessionMaterialRepo;
         _sessionTaskRepo = sessionTaskRepo;
-        _sessionHelper = sessionHelper;
         _sessionMaterialFileRepo = sessionMaterialFileRepo;
         _questionRepo = taskQuestionRepo;
         _multipleChoiceOptionRepo = taskMultipleChoiceOptionRepo;
         _forumRepo = forumRepo;
         _forumCommentRepo = forumCommentRepo;
         _taskFileRepo = taskFileRepo;
+        _sessionHelper = sessionHelper;
     }
 
     public SessionAttendance AttendSession(int sessionId)
@@ -67,7 +67,13 @@ internal class SessionService : ISessionService
         return sessionAttendance;
     }
 
-    public Session GetSessionById(int sessionId)
+    public List<SessionAttendance> GetSessionAttendanceList(int sessionId)
+    {
+        var attendanceList = _sessionAttendanceRepo.GetSessionAttendanceList(sessionId);
+        return attendanceList;
+    }
+
+    public Session GetSessionAndContentsById(int sessionId)
     {
         var session = _sessionRepo.GetSessionById(sessionId);
         var materialList = _sessionMaterialRepo.GetMaterialListBySession(sessionId);
@@ -110,5 +116,12 @@ internal class SessionService : ISessionService
         session.Forum.CommentList = commentList;
 
         return session;
+    }
+
+    public void UpdateAttendanceApprovalStatus(SessionAttendance sessionAttendance)
+    {
+        sessionAttendance.UpdatedBy = _sessionHelper.UserId;
+        sessionAttendance.UpdatedAt = DateTime.Now;
+        _sessionAttendanceRepo.UpdateSessionAttendance(sessionAttendance);
     }
 }

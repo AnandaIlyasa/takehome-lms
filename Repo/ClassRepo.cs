@@ -59,4 +59,14 @@ internal class ClassRepo : IClassRepo
 
         return classList;
     }
+
+    public List<Class> GetClassListByTeacher(int teacherId)
+    {
+        var classList = _context.Classes
+                        .Where(c => c.TeacherId == teacherId)
+                        .Include(c => c.ClassImage)
+                        .Include(c => c.Teacher)
+                        .ToList();
+        return classList;
+    }
 }

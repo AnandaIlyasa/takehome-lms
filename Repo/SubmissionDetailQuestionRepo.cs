@@ -19,4 +19,9 @@ internal class SubmissionDetailQuestionRepo : ISubmissionDetailQuestionRepo
         _context.SaveChanges();
         return submissionDetailQuestion;
     }
+
+    public List<SubmissionDetailQuestion> GetStudentSubmissionDetailQuestionByTask(int taskId)
+    {
+        throw new NotImplementedException();
+    }
 }

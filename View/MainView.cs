@@ -58,7 +58,7 @@ internal class MainView
 
         if (user.Role.RoleCode == RoleCode.SuperAdmin)
         {
-            _superAdminView.MainMenu();
+            _superAdminView.MainMenu(user);
         }
         else if (user.Role.RoleCode == RoleCode.Teacher)
         {

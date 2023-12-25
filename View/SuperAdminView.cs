@@ -1,14 +1,15 @@
 ﻿namespace Lms.View;
 
 using Lms.Utils;
+using Lms.Model;
 
 internal class SuperAdminView
 {
-    public void MainMenu()
+    public void MainMenu(User superadmin)
     {
         while (true)
         {
-            Console.WriteLine("\n--- Super Admin Page ---");
+            Console.WriteLine("\n--- Super Admin Page - hello, " + superadmin.FullName + " ----");
             Console.WriteLine("1. Register New Teacher");
             Console.WriteLine("2. Create New Class");
             Console.WriteLine("3. Logout");

@@ -56,6 +56,8 @@ internal class SessionService : ISessionService
             StudentId = _sessionHelper.UserId,
             SessionId = sessionId,
             IsApproved = false,
+            CreatedAt = DateTime.Now,
+            CreatedBy = _sessionHelper.UserId,
         };
         sessionAttendance = _sessionAttendanceRepo.CreateNewSessionAttendance(sessionAttendance);
         return sessionAttendance;
@@ -105,7 +107,7 @@ internal class SessionService : ISessionService
                                     .OrderByDescending(q => q.QuestionType)
                                     .ToList();
 
-            var taskFileList = _taskFileRepo.GetTaskFileListTask(task.Id);
+            var taskFileList = _taskFileRepo.GetTaskFileList(task.Id);
             task.TaskFileList = taskFileList;
         }
 

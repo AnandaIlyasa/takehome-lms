@@ -12,7 +12,6 @@ internal class TeacherView : StudentTeacherBaseView
     readonly ISessionService _sessionService;
     readonly IForumService _forumService;
     readonly ITaskSubmissionService _taskSubmissionService;
-    User _teacherUser;
 
     public TeacherView(IClassService classService, ISessionService sessionService, IForumService forumService, ITaskSubmissionService taskSubmissionService)
     {
@@ -22,13 +21,11 @@ internal class TeacherView : StudentTeacherBaseView
         _taskSubmissionService = taskSubmissionService;
     }
 
-    public void MainMenu(User user)
+    public void MainMenu(User teacher)
     {
-        _teacherUser = user;
-
         while (true)
         {
-            Console.WriteLine("\n--- Teacher Page - hello, " + _teacherUser.FullName + " ----");
+            Console.WriteLine("\n--- Teacher Page - hello, " + teacher.FullName + " ----");
             var classList = _classService.GetClassListByTeacher();
             var number = 1;
             foreach (var cl in classList)
@@ -326,7 +323,7 @@ internal class TeacherView : StudentTeacherBaseView
         var multipleChoiceScore = (double)((double)nMultipleChoiceCorrect / nMultipleChoice) * 100.0d;
         if (submission.UpdatedAt.HasValue == false) submission.Grade = multipleChoiceScore;
 
-        ShowSubmissionInformation(task, submission, (double)submission.Grade);
+        ShowSubmissionInformation(task, submission, multipleChoiceScore);
 
         Console.WriteLine("\n1. Insert Score and Notes");
         Console.WriteLine("2. Back");
@@ -334,28 +331,19 @@ internal class TeacherView : StudentTeacherBaseView
 
         if (selectedOpt == 1)
         {
-            if (submission.UpdatedAt.HasValue)
-            {
-                Console.WriteLine("\nYou have reviewed " + submission.Student.FullName + "'s submission before");
-                return;
-            }
-
-            Console.Write("Score: ");
+            Console.Write("Essay Score: ");
             var score = Convert.ToDouble(Console.ReadLine());
             var notes = Utils.GetStringInputUtil("Notes");
 
-            if (submission.UpdatedAt.HasValue == false)
-            {
-                submission.Grade = (multipleChoiceScore + score) / 2;
-                submission.TeacherNotes = notes;
-            }
+            submission.Grade = (multipleChoiceScore + score) / 2;
+            submission.TeacherNotes = notes;
 
             _taskSubmissionService.InsertScoreAndNotes(submission);
             submission = _taskSubmissionService.GetStudentSubmissionByTask(submission.StudentId, submission.TaskId);
 
             Console.WriteLine("\nScore and Notes successfully submitted");
 
-            ShowSubmissionInformation(task, submission, (double)submission.Grade);
+            ShowSubmissionInformation(task, submission, multipleChoiceScore);
         }
         else
         {
@@ -367,14 +355,8 @@ internal class TeacherView : StudentTeacherBaseView
     {
         Console.WriteLine($"\n{submission.Student.FullName} {task.TaskName} Submission");
         Console.WriteLine("Submitted: " + submission.CreatedAt.ToString(DateTimeFormat));
-        if (submission.UpdatedAt.HasValue)
-        {
-            Console.WriteLine("Score: " + multipleChoiceScore);
-        }
-        else
-        {
-            Console.WriteLine("Multiple Choice Score: " + multipleChoiceScore);
-        }
+        Console.WriteLine("Multiple Choice Score: " + multipleChoiceScore);
+        Console.WriteLine("Final Score: " + submission.Grade);
         Console.WriteLine("Notes: " + submission.TeacherNotes);
 
         ShowStudentAnswerList(task, submission);
@@ -412,14 +394,20 @@ internal class TeacherView : StudentTeacherBaseView
 
         foreach (var taskFile in task.TaskFileList)
         {
-            var existingAnswer = submission.SubmissionDetailFileList.Find(q => q.TaskFileId == taskFile.Id);
-            if (existingAnswer == null)
+            var existingAnswerList = new List<SubmissionDetailFile>();
+            foreach (var answerFile in submission.SubmissionDetailFileList)
+            {
+                if (answerFile.TaskFileId == taskFile.Id) existingAnswerList.Add(answerFile);
+            }
+            if (existingAnswerList.Count == 0)
             {
                 Console.WriteLine($"{number}. {taskFile.FileName} - ({taskFile.File.FileContent}.{taskFile.File.FileExtension})");
             }
             else
             {
-                Console.WriteLine($"{number}. {taskFile.FileName} - ({taskFile.File.FileContent}.{taskFile.File.FileExtension}) --- Your answer: {existingAnswer.File.FileContent}.{existingAnswer.File.FileExtension}");
+                Console.Write($"{number}. {taskFile.FileName} - ({taskFile.File.FileContent}.{taskFile.File.FileExtension}) --- Your answer: ");
+                foreach (var submissionFile in existingAnswerList) Console.Write($"{submissionFile.File.FileContent}.{submissionFile.File.FileExtension}, ");
+                Console.WriteLine();
             }
             number++;
         }

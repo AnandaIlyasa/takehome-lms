@@ -317,23 +317,23 @@ INSERT INTO t_m_file (file_content, file_extension, created_by, created_at, is_a
 INSERT INTO t_m_role (role_code, role_name, created_by, created_at, is_active) VALUES
 	('SYS', 'System', 1, NOW(), true),
 	('SA', 'Super Admin', 1, NOW(), true),
-	('STD', 'Student', 1, NOW(), true),
-	('TCH', 'Teacher', 1, NOW(), true);
+	('TCH', 'Teacher', 1, NOW(), true),
+	('STD', 'Student', 1, NOW(), true);
 
 INSERT INTO t_m_user (full_name, email, pass, photo_id, role_id, created_by, created_at, is_active) VALUES
 	('System', 'System', 'System', NULL, 1, 1, NOW(), false),
 	('Andi Susilo', 'andi', 'andi', NULL, 2, 1, NOW(), true),
-	('Budi Doremi', 'budi', 'budi', NULL, 3, 1, NOW(), true),
-	('Caca Putri', 'caca', 'caca', NULL, 3, 1, NOW(), true),
-	('Deni Putra', 'deni', 'deni', NULL, 3, 1, NOW(), true),
-	('Eka Setiawan', 'eka', 'eka', NULL, 4, 1, NOW(), true);
+	('Budi Doremi', 'budi', 'budi', NULL, 3, 1, NOW(), true);
+	-- ('Caca Putri', 'caca', 'caca', NULL, 4, 1, NOW(), true),
+	-- ('Deni Putra', 'deni', 'deni', NULL, 4, 1, NOW(), true),
+	-- ('Eka Setiawan', 'eka', 'eka', NULL, 4, 1, NOW(), true);
 
 INSERT INTO t_m_class (teacher_id, class_code, class_title, class_description, class_image_id, created_by, created_at, is_active) VALUES
-	(5, 'JAVA-1', 'Java basics 1', 'Learn java basics level 1', 1, 1, NOW(), true),
-	(5, 'JAVA-2', 'Java basics 2', 'Learn java basics level 2', 2, 1, NOW(), true),
-	(5, 'JAVA-3', 'Java basics 3', 'Learn java basics level 3', 3, 1, NOW(), true),
-	(5, 'JAVA-4', 'Java basics 4', 'Learn java basics level 4', 4, 1, NOW(), true),
-	(5, 'JAVA-5', 'Java basics 5', 'Learn java basics level 5', 4, 1, NOW(), true);
+	(3, 'JAVA-1', 'Java basics 1', 'Learn java basics level 1', 1, 1, NOW(), true),
+	(3, 'JAVA-2', 'Java basics 2', 'Learn java basics level 2', 2, 1, NOW(), true),
+	(3, 'JAVA-3', 'Java basics 3', 'Learn java basics level 3', 3, 1, NOW(), true),
+	(3, 'JAVA-4', 'Java basics 4', 'Learn java basics level 4', 4, 1, NOW(), true),
+	(3, 'JAVA-5', 'Java basics 5', 'Learn java basics level 5', 4, 1, NOW(), true);
 
 -- INSERT INTO t_r_student_class (class_id, student_id, created_by, created_at, is_active) VALUES
 -- 	(1, 2, 1, NOW(), true),
@@ -398,11 +398,11 @@ INSERT INTO t_m_session_material (material_name, material_description, session_i
 	('material-5', 'This is module for SOLID Principle no 5', 3, 1, NOW(), true);
 
 INSERT INTO t_r_session_material_file (file_id, file_name, material_id, created_by, created_at, is_active) VALUES
-	(1, 'Explanation for task no 1', 1, 1, NOW(), true),
-	(2, 'Explanation for task no 2', 1, 1, NOW(), true),
-	(3, 'Explanation for task no 3', 2, 1, NOW(), true),
-	(4, 'Explanation for task no 4', 2, 1, NOW(), true),
-	(5, 'Explanation for task no 5', 3, 1, NOW(), true);
+	(1, 'Explanation for principle no 1', 1, 1, NOW(), true),
+	(2, 'Explanation for principle no 2', 1, 1, NOW(), true),
+	(3, 'Explanation for principle no 3', 2, 1, NOW(), true),
+	(4, 'Explanation for principle no 4', 2, 1, NOW(), true),
+	(5, 'Explanation for principle no 5', 3, 1, NOW(), true);
 
 INSERT INTO t_m_task (task_name, task_description, duration, session_id, created_by, created_at, is_active) VALUES
 	('Task-1', 'Give implementation example for SOLID Principle no 1', 10, 1, 1, NOW(), true),
@@ -469,7 +469,7 @@ INSERT INTO t_r_task_detail (task_id, task_file_id, task_question_id, created_by
 -- 	(NULL, 4, 4, 4, 1, NOW(), true),
 -- 	(NULL, 5, 5, 5, 1, NOW(), true);
 
--- INSERT INTO t_r_submission_detail_file (submission_id, file_id, created_by, created_at, is_active) VALUES
+-- INSERT INTO t_r_submission_detail_file (submission_id, file_id, task_file_id, created_by, created_at, is_active) VALUES
 -- 	(1, 1, 1, NOW(), true),
 -- 	(2, 2, 1, NOW(), true),
 -- 	(3, 3, 1, NOW(), true),

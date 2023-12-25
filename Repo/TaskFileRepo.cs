@@ -14,7 +14,7 @@ internal class TaskFileRepo : ITaskFileRepo
         _context = context;
     }
 
-    public List<TaskFile> GetTaskFileListTask(int taskId)
+    public List<TaskFile> GetTaskFileList(int taskId)
     {
         var taskFileList = _context.TaskFiles
                             .Join(
@@ -25,8 +25,6 @@ internal class TaskFileRepo : ITaskFileRepo
                             )
                             .Where(tftd => tftd.td.TaskId == taskId)
                             .Select(tftd => tftd.tf)
-                            .GroupBy(tf => tf.Id)
-                            .Select(tf => tf.First())
                             .ToList();
         return taskFileList;
     }

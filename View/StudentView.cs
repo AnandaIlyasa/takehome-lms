@@ -11,7 +11,6 @@ internal class StudentView : StudentTeacherBaseView
     readonly ISessionService _sessionService;
     readonly ITaskSubmissionService _taskSubmissionService;
     readonly IForumService _forumService;
-    User _studentUser;
 
     public StudentView
     (
@@ -27,13 +26,11 @@ internal class StudentView : StudentTeacherBaseView
         _forumService = forumService;
     }
 
-    public void MainMenu(User user)
+    public void MainMenu(User student)
     {
-        _studentUser = user;
-
         while (true)
         {
-            Console.WriteLine("\n--- Student Page - hello, " + user.FullName + " ----");
+            Console.WriteLine("\n--- Student Page - hello, " + student.FullName + " ----");
             Console.WriteLine("1. My Class List");
             Console.WriteLine("2. Enroll New Class");
             Console.WriteLine("3. Logout");
@@ -249,6 +246,12 @@ internal class StudentView : StudentTeacherBaseView
     {
         Console.WriteLine("\n" + material.MaterialName + " Detail");
         Console.WriteLine("Description: " + material.MaterialDescription);
+        Console.Write("Material File: ");
+        foreach (var file in material.MaterialFileList)
+        {
+            Console.Write($"{file.FileName} ({file.File.FileContent}.{file.File.FileExtension}), ");
+        }
+        Console.WriteLine();
     }
 
     void ShowTaskDetail(LMSTask task)
@@ -295,14 +298,20 @@ internal class StudentView : StudentTeacherBaseView
 
             foreach (var taskFile in task.TaskFileList)
             {
-                var existingAnswer = submission.SubmissionDetailFileList.Find(q => q.TaskFile.Id == taskFile.Id);
-                if (existingAnswer == null)
+                var existingAnswerList = new List<SubmissionDetailFile>();
+                foreach (var answerFile in submission.SubmissionDetailFileList)
+                {
+                    if (answerFile.TaskFileId == taskFile.Id) existingAnswerList.Add(answerFile);
+                }
+                if (existingAnswerList.Count == 0)
                 {
                     Console.WriteLine($"{number}. {taskFile.FileName} - ({taskFile.File.FileContent}.{taskFile.File.FileExtension})");
                 }
                 else
                 {
-                    Console.WriteLine($"{number}. {taskFile.FileName} - ({taskFile.File.FileContent}.{taskFile.File.FileExtension}) --- Your answer: {existingAnswer.File.FileContent}.{existingAnswer.File.FileExtension}");
+                    Console.Write($"{number}. {taskFile.FileName} - ({taskFile.File.FileContent}.{taskFile.File.FileExtension}) --- Your answer: ");
+                    foreach (var submissionFile in existingAnswerList) Console.Write($"{submissionFile.File.FileContent}.{submissionFile.File.FileExtension}, ");
+                    Console.WriteLine();
                 }
                 number++;
             }
@@ -361,15 +370,22 @@ internal class StudentView : StudentTeacherBaseView
             else if (selectedOpt > questionList.Count && selectedOpt < number - 1)
             {
                 var selectedTaskFile = task.TaskFileList[selectedOpt - questionList.Count - 1];
-                var existingAnswer = submission.SubmissionDetailFileList.Find(tf => tf.TaskFile.Id == selectedTaskFile.Id);
-
-                var filename = Utils.GetStringInputUtil("Filename");
-                var extension = Utils.GetStringInputUtil("Extension");
-                if (existingAnswer == null)
+                var existingAnswer = submission.SubmissionDetailFileList.Find(tf => tf.TaskFileId == selectedTaskFile.Id);
+                if (existingAnswer != null)
                 {
+                    Console.WriteLine("You can not change your answer for this task file\n");
+                    continue;
+                }
+
+                var numberOfFile = Utils.GetNumberInputUtil(1, 5, "How many file you want to submit");
+                for (int i = 0; i < numberOfFile; i++)
+                {
+                    var filename = Utils.GetStringInputUtil("Filename");
+                    var extension = Utils.GetStringInputUtil("Extension");
+
                     var answer = new SubmissionDetailFile()
                     {
-                        TaskFile = selectedTaskFile,
+                        TaskFileId = selectedTaskFile.Id,
                         File = new LMSFile()
                         {
                             FileContent = filename,
@@ -377,14 +393,6 @@ internal class StudentView : StudentTeacherBaseView
                         },
                     };
                     submission.SubmissionDetailFileList.Add(answer);
-                }
-                else
-                {
-                    existingAnswer.File = new LMSFile()
-                    {
-                        FileContent = filename,
-                        FileExtension = extension,
-                    };
                 }
             }
             else if (selectedOpt == number - 1)

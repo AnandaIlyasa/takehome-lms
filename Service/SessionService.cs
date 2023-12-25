@@ -124,6 +124,7 @@ internal class SessionService : ISessionService
     {
         sessionAttendance.UpdatedBy = _sessionHelper.UserId;
         sessionAttendance.UpdatedAt = DateTime.Now;
+        sessionAttendance.IsApproved = !sessionAttendance.IsApproved;
         _sessionAttendanceRepo.UpdateSessionAttendance(sessionAttendance);
     }
 }

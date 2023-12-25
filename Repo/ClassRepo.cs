@@ -69,4 +69,19 @@ internal class ClassRepo : IClassRepo
                         .ToList();
         return classList;
     }
+
+    public Class CreateNewClass(Class newClass)
+    {
+        _context.Classes.Add(newClass);
+        _context.SaveChanges();
+        return newClass;
+    }
+
+    public List<Class> GetClassList()
+    {
+        var classList = _context.Classes
+                        .Include(c => c.Teacher)
+                        .ToList();
+        return classList;
+    }
 }

@@ -32,6 +32,24 @@ internal class UserService : IUserService
         return user;
     }
 
+    public User CreateNewTeacher(User user)
+    {
+        var role = _roleRepo.GetRoleByCode(RoleCode.Teacher);
+        user.RoleId = role.Id;
+
+        user.CreatedBy = _sessionHelper.UserId;
+        user.CreatedAt = DateTime.Now;
+        user.Pass = Utils.Utils.GenerateRandomAlphaNumericUtil();
+        user = _userRepo.CreateNewUser(user);
+        return user;
+    }
+
+    public List<User> GetTeacherList()
+    {
+        var teacherList = _userRepo.GetUserListByRole(RoleCode.Teacher);
+        return teacherList;
+    }
+
     public User? Login(string email, string password)
     {
         var user = _userRepo.GetUserByEmailAndPassword(email, password);

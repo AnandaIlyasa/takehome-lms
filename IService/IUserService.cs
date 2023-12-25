@@ -7,4 +7,6 @@ internal interface IUserService
 {
     User? Login(string email, string password);
     User CreateNewStudent(User user);
+    User CreateNewTeacher(User user);
+    List<User> GetTeacherList();
 }

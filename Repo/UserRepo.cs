@@ -38,4 +38,13 @@ internal class UserRepo : IUserRepo
                     .First();
         return user;
     }
+
+    public List<User> GetUserListByRole(string roleCode)
+    {
+        var userList = _context.Users
+                    .Include(u => u.Role)
+                    .Where(u => u.Role.RoleCode == roleCode)
+                    .ToList();
+        return userList;
+    }
 }

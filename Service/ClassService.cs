@@ -12,6 +12,7 @@ internal class ClassService : IClassService
     readonly IStudentClassRepo _studentClassRepo;
     readonly ILearningRepo _learningRepo;
     readonly ISessionRepo _sessionRepo;
+    readonly ILMSFileRepo _fileRepo;
     readonly SessionHelper _sessionHelper;
 
     public ClassService
@@ -20,6 +21,7 @@ internal class ClassService : IClassService
         IStudentClassRepo studentClassRepo,
         ILearningRepo learningRepo,
         ISessionRepo sessionRepo,
+        ILMSFileRepo fileRepo,
         SessionHelper sessionHelper
     )
     {
@@ -27,6 +29,7 @@ internal class ClassService : IClassService
         _studentClassRepo = studentClassRepo;
         _learningRepo = learningRepo;
         _sessionRepo = sessionRepo;
+        _fileRepo = fileRepo;
         _sessionHelper = sessionHelper;
     }
 
@@ -74,5 +77,31 @@ internal class ClassService : IClassService
                 learning.SessionList = sessionList;
             }
         }
+    }
+
+    public Class CreateNewClass(Class newClass)
+    {
+        using (var context = new DBContextConfig())
+        {
+            var trx = context.Database.BeginTransaction();
+
+            newClass.ClassImage.CreatedBy = _sessionHelper.UserId;
+            newClass.ClassImage.CreatedAt = DateTime.Now;
+            var insertedFile = _fileRepo.CreateNewFile(newClass.ClassImage);
+
+            newClass.ClassImageId = insertedFile.Id;
+            newClass.CreatedBy = _sessionHelper.UserId;
+            newClass.CreatedAt = DateTime.Now;
+            _classRepo.CreateNewClass(newClass);
+
+            trx.Commit();
+        }
+        return newClass;
+    }
+
+    public List<Class> GetAllClassList()
+    {
+        var classList = _classRepo.GetClassList();
+        return classList;
     }
 }

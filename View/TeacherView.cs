@@ -321,7 +321,6 @@ internal class TeacherView : StudentTeacherBaseView
         foreach (var question in task.TaskQuestionList) if (question.QuestionType == QuestionType.MultipleChoice) nMultipleChoice++;
         foreach (var answer in submission.SubmissionDetailQuestionList) if (answer.ChoiceOption != null && answer.ChoiceOption.IsCorrect) nMultipleChoiceCorrect++;
         var multipleChoiceScore = (double)((double)nMultipleChoiceCorrect / nMultipleChoice) * 100.0d;
-        if (submission.UpdatedAt.HasValue == false) submission.Grade = multipleChoiceScore;
 
         ShowSubmissionInformation(task, submission, multipleChoiceScore);
 
@@ -379,7 +378,7 @@ internal class TeacherView : StudentTeacherBaseView
             }
             else
             {
-                Console.WriteLine($"{number}. {taskQuestion.QuestionContent} --- Your answer: {answer}");
+                Console.WriteLine($"{number}. {taskQuestion.QuestionContent} --- answer: {answer}");
             }
 
             if (taskQuestion.QuestionType == QuestionType.MultipleChoice)
@@ -405,7 +404,7 @@ internal class TeacherView : StudentTeacherBaseView
             }
             else
             {
-                Console.Write($"{number}. {taskFile.FileName} - ({taskFile.File.FileContent}.{taskFile.File.FileExtension}) --- Your answer: ");
+                Console.Write($"{number}. {taskFile.FileName} - ({taskFile.File.FileContent}.{taskFile.File.FileExtension}) --- answer: ");
                 foreach (var submissionFile in existingAnswerList) Console.Write($"{submissionFile.File.FileContent}.{submissionFile.File.FileExtension}, ");
                 Console.WriteLine();
             }

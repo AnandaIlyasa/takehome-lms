@@ -45,7 +45,7 @@ internal class SessionAttendanceRepo : ISessionAttendanceRepo
         var attendance = _context.SessionAttendances
                         .Where(sa => sa.Id == sessionAttendance.Id)
                         .First();
-        attendance.IsApproved = !sessionAttendance.IsApproved;
+        attendance.IsApproved = sessionAttendance.IsApproved;
         return _context.SaveChanges();
     }
 }
